@@ -97,6 +97,75 @@ def fetch_calendar(login):
     return d["user"]["contributionsCollection"]["contributionCalendar"]
 
 
+def fetch_stale_commits(login):
+    """Per-day count of commits GitHub credits to `login` that are no longer
+    really theirs on the default branch (e.g. bot commits left over after a
+    history rewrite, until GitHub recalculates). Self-correcting: once GitHub
+    catches up, credited == real and this returns nothing."""
+    today = datetime.datetime.now(datetime.timezone.utc).date()
+    since = (today - datetime.timedelta(days=365)).isoformat() + "T00:00:00Z"
+    uid = gql("query($l:String!){user(login:$l){id}}", {"l": login})["user"]["id"]
+    q = """
+    query($login:String!,$after:String){
+      user(login:$login){ contributionsCollection{
+        commitContributionsByRepository(maxRepositories:100){
+          repository{ name owner{ login } }
+          contributions(first:100,after:$after){
+            pageInfo{ hasNextPage endCursor } nodes{ occurredAt commitCount } } } } }
+    }"""
+    hq = """
+    query($o:String!,$n:String!,$uid:ID!,$since:GitTimestamp!,$after:String){
+      repository(owner:$o,name:$n){ defaultBranchRef{ target{ ... on Commit{
+        history(first:100,after:$after,since:$since,author:{id:$uid}){
+          pageInfo{ hasNextPage endCursor } nodes{ authoredDate } } } } } }
+    }"""
+    excess = {}
+    repos = gql(q, {"login": login, "after": None})["user"]["contributionsCollection"]
+    for entry in repos["commitContributionsByRepository"]:
+        owner, name = entry["repository"]["owner"]["login"], entry["repository"]["name"]
+        credited = {}
+        conts = entry["contributions"]
+        while True:
+            for n in conts["nodes"]:
+                d = n["occurredAt"][:10]
+                credited[d] = credited.get(d, 0) + n["commitCount"]
+            if not conts["pageInfo"]["hasNextPage"]:
+                break
+            nxt = gql(q, {"login": login, "after": conts["pageInfo"]["endCursor"]})
+            conts = next(e["contributions"] for e in
+                         nxt["user"]["contributionsCollection"]["commitContributionsByRepository"]
+                         if e["repository"]["name"] == name and e["repository"]["owner"]["login"] == owner)
+        real, after = {}, None
+        while True:
+            r = gql(hq, {"o": owner, "n": name, "uid": uid, "since": since, "after": after})["repository"]
+            if not r or not r["defaultBranchRef"]:
+                break
+            h = r["defaultBranchRef"]["target"]["history"]
+            for n in h["nodes"]:
+                d = n["authoredDate"][:10]
+                real[d] = real.get(d, 0) + 1
+            if not h["pageInfo"]["hasNextPage"]:
+                break
+            after = h["pageInfo"]["endCursor"]
+        for d, c in credited.items():
+            extra = c - real.get(d, 0)
+            if extra > 0:
+                excess[d] = excess.get(d, 0) + extra
+    return excess
+
+
+def drop_stale(cal, excess):
+    """Subtract stale commits from the calendar in place."""
+    removed = 0
+    for w in cal["weeks"]:
+        for d in w["contributionDays"]:
+            cut = min(excess.get(d["date"], 0), d["contributionCount"])
+            d["contributionCount"] -= cut
+            removed += cut
+    cal["totalContributions"] -= removed
+    return removed
+
+
 def fetch_languages(login):
     """Return (by_bytes{name:{size}}, by_repos{name:count}) for PUBLIC non-forks."""
     q = """
@@ -367,6 +436,8 @@ def build_grid(cal):
 def main():
     login = whoami()
     cal = fetch_calendar(login)
+    removed = drop_stale(cal, fetch_stale_commits(login))
+    print(f"dropped {removed} stale commit contributions")
     by_bytes, by_repos = fetch_languages(login)
     cur, longest = streaks(flatten(cal))
     outputs = {
