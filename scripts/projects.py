@@ -191,8 +191,9 @@ def build_web(groups, loose):
     legend = (f'<g font-family="{SANSF}" font-size="10.5">'
               f'<circle class="pub" cx="16" cy="{W_H - 14}" r="4"/><text class="mu" x="26" y="{W_H - 10}">public</text>'
               f'<circle class="prv" cx="86" cy="{W_H - 14}" r="4" stroke-width="1.5"/><text class="mu" x="96" y="{W_H - 10}">private</text>'
-              f'<circle class="lse" cx="160" cy="{W_H - 14}" r="4" stroke-width="1.4" stroke-dasharray="2 2"/>'
-              f'<text class="mu" x="170" y="{W_H - 10}">not in a cluster</text></g>')
+              + (f'<circle class="lse" cx="160" cy="{W_H - 14}" r="4" stroke-width="1.4" stroke-dasharray="2 2"/>'
+                 f'<text class="mu" x="170" y="{W_H - 10}">not in a cluster</text>' if loose else "")
+              + '</g>')
     alt = "; ".join(f'{h.replace("&amp;", "and")}: {", ".join(r["name"] for r in ms)}' for h, ms in groups)
     if loose:
         alt += "; not in a cluster: " + ", ".join(r["name"] for r in loose)
