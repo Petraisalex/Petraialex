@@ -42,7 +42,7 @@
   <img src="art/projects-web.svg" width="100%" alt="Project web. hobby and business: t9-trading-floor, kaizena, petrakov-folio; quant finance: portfolio-recommendation-engine; business intelligence and ml: modastera-outbound-pipeline, blog-chart-spec; not in a cluster: assets">
 </p>
 
-<p align="center"><sub>open source: &nbsp;<a href="https://github.com/Petraisalex/portfolio-recommendation-engine">portfolio-recommendation-engine</a> &nbsp;·&nbsp; <a href="https://github.com/Petraisalex/assets">assets</a></sub></p>
+<p align="center"><sub>open source: &nbsp;<a href="https://github.com/Petraisalex/portfolio-recommendation-engine">portfolio-recommendation-engine</a></sub></p>
 
 <!-- PROJECTS:END -->
 
