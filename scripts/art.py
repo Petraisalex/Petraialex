@@ -40,10 +40,13 @@ TAGLINES = [
 MASTERED = ["python", "n8n", "powerbi", "excel", "r", "git"]
 LEARNING = ["catboost", "shap", "fastapi", "docker", "mlflow",
             "googlebigquery", "looker", "umap", "bertopic"]
+LEARNING_WEB = ["html5", "css3", "javascript", "typescript", "react", "nextdotjs"]
 LABELS = {"python": "Python", "n8n": "n8n", "powerbi": "Power BI", "excel": "Excel", "r": "R",
           "git": "Git", "catboost": "CatBoost", "shap": "SHAP", "fastapi": "FastAPI",
           "docker": "Docker", "mlflow": "MLflow", "googlebigquery": "BigQuery",
-          "looker": "Looker", "umap": "UMAP", "bertopic": "BERTopic"}
+          "looker": "Looker", "umap": "UMAP", "bertopic": "BERTopic",
+          "html5": "HTML5", "css3": "CSS3", "javascript": "JavaScript",
+          "typescript": "TypeScript", "react": "React", "nextdotjs": "Next.js"}
 
 CONNECT = [("linkedin", "LinkedIn"), ("instagram", "Instagram"), ("email", "Email")]
 
@@ -225,7 +228,7 @@ def build_about():
 
 
 def build_stack():
-    """Two rows of tiles: what I've mastered, and what I'm learning now."""
+    """Rows of tiles: what I've mastered, then what I'm learning now (data & ML, web)."""
     TW, TH, GAP, LBL, ROWGAP = 72, 84, 8, 22, 24
     W = len(LEARNING) * TW + (len(LEARNING) - 1) * GAP
 
@@ -245,11 +248,14 @@ def build_stack():
 
     top = row(MASTERED, 0, "MASTERED")
     y2 = LBL + TH + ROWGAP
-    bottom = row(LEARNING, y2, "LEARNING NOW", dashed=True)
-    H = y2 + LBL + TH
+    bottom = row(LEARNING, y2, "LEARNING NOW · DATA &amp; ML", dashed=True)
+    y3 = y2 + LBL + TH + ROWGAP
+    web = row(LEARNING_WEB, y3, "LEARNING NOW · WEB", dashed=True)
+    H = y3 + LBL + TH
     label = ("Mastered: " + ", ".join(LABELS[n] for n in MASTERED)
-             + ". Learning now: " + ", ".join(LABELS[n] for n in LEARNING) + ".")
-    return svg(W, H, "".join(top + bottom), label)
+             + ". Learning now, data and ML: " + ", ".join(LABELS[n] for n in LEARNING)
+             + ". Learning now, web: " + ", ".join(LABELS[n] for n in LEARNING_WEB) + ".")
+    return svg(W, H, "".join(top + bottom + web), label)
 
 
 def build_connect(name, label):

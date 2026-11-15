@@ -29,7 +29,7 @@
 <img src="hd-tech-stack.svg" width="100%" alt="tech stack">
 
 <p align="center">
-  <img src="art/stack.svg" width="712" alt="Mastered: Python, n8n, Power BI, Excel, R, Git. Learning now: CatBoost, SHAP, FastAPI, Docker, MLflow, BigQuery, Looker, UMAP, BERTopic.">
+  <img src="art/stack.svg" width="712" alt="Mastered: Python, n8n, Power BI, Excel, R, Git. Learning now, data and ML: CatBoost, SHAP, FastAPI, Docker, MLflow, BigQuery, Looker, UMAP, BERTopic. Learning now, web: HTML5, CSS3, JavaScript, TypeScript, React, Next.js.">
 </p>
 
 <img src="hd-projects.svg" width="100%" alt="projects">
