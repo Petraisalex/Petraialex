@@ -45,9 +45,13 @@ LABELS = {"python": "Python", "pytorch": "PyTorch", "r": "R", "xgboost": "XGBoos
 CONNECT = [("linkedin", "LinkedIn"), ("instagram", "Instagram"), ("email", "Email")]
 
 
+def xesc(s):
+    return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
+
+
 def svg(w, h, inner, label):
     return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" '
-            f'height="{h}" role="img" aria-label="{label.replace("&", "&amp;")}">{STYLE}{inner}</svg>')
+            f'height="{h}" role="img" aria-label="{xesc(label)}">{STYLE}{inner}</svg>')
 
 
 def icon_path(name):
@@ -128,7 +132,7 @@ def build_typing():
             f'<animate attributeName="width" calcMode="discrete" dur="{T:.2f}s" '
             f'repeatCount="indefinite" keyTimes="{kt}" values="{vals}"/></rect></clipPath>')
         texts.append(f'<text class="fg" x="{x0:.1f}" y="37" clip-path="url(#c{i})">'
-                     f'{line.replace("&", "&amp;")}</text>')
+                     f'{xesc(line)}</text>')
         caret_pts += [(tm, x0 + v) for tm, v in clean if 0 < tm < 1]
 
     caret_pts.sort()
@@ -193,7 +197,7 @@ def build_about():
                 p.append(f'<text class="ac" x="{3 * CW:.1f}" y="{y}" font-weight="700">{key}</text>')
                 p.append(f'<text class="mu" x="{(3 + KEY - 2) * CW:.1f}" y="{y}">→</text>')
             p.append(f'<text class="fg" x="{(3 + KEY) * CW:.1f}" y="{y}" xml:space="preserve">'
-                     f'{line.replace("&", "&amp;")}</text>')
+                     f'{xesc(line)}</text>')
         if i < len(ABOUT) - 1:
             y += LH
     # side rails: one │ per text row so they read as characters
