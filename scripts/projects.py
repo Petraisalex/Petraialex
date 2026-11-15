@@ -28,6 +28,7 @@ GROUPS = [  # (heading, topics that put a repo in it)
     ("business intelligence &amp; ml", {"business-intelligence", "machine-learning"}),
 ]
 START, END = "<!-- PROJECTS:START -->", "<!-- PROJECTS:END -->"
+HIDE_TOPIC = "hide-from-profile"   # tag a repo with this to keep it off the profile entirely
 API = "https://api.github.com/graphql"
 
 QUERY = """
@@ -81,7 +82,8 @@ def topics_of(r):
 
 
 def clusters(repos, login):
-    live = [r for r in repos if not r["isArchived"] and r["name"].lower() != login.lower()]
+    live = [r for r in repos if not r["isArchived"] and r["name"].lower() != login.lower()
+            and HIDE_TOPIC not in topics_of(r)]
     groups = [(h, [r for r in live if topics & topics_of(r)]) for h, topics in GROUPS]
     placed = {r["name"] for _, ms in groups for r in ms}
     loose = [r for r in live if r["name"] not in placed]
