@@ -435,9 +435,15 @@ def build_grid(cal):
 
 def main():
     login = whoami()
-    cal = fetch_calendar(login)
-    removed = drop_stale(cal, fetch_stale_commits(login))
-    print(f"dropped {removed} stale commit contributions")
+    snap = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "activity.json")
+    if os.path.exists(snap):
+        # cleaned, private-inclusive activity from scripts/activity.py
+        cal = json.load(open(snap))["calendar"]
+        print("calendar from activity.json")
+    else:
+        cal = fetch_calendar(login)
+        removed = drop_stale(cal, fetch_stale_commits(login))
+        print(f"dropped {removed} stale commit contributions")
     by_bytes, by_repos = fetch_languages(login)
     cur, longest = streaks(flatten(cal))
     outputs = {
