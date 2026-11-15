@@ -28,14 +28,14 @@ LOGIN = os.environ.get("GH_LOGIN", "").strip()
 RAMP = " .`:-=+*cs#%@"          # shared with the portrait
 LEGEND = [":", "+", "#", "@"]   # low -> high, for the year legend
 
-# monochrome, theme-aware palette
+# navy & pink to match the banner, theme-aware
 STYLE = """
 <style>
-  .s{fill:#1f2328}  .m{fill:#59636e}  .t{fill:#d0d7de}
-  .stk{stroke:#1f2328}  .trk{fill:#eaeef2}
+  .s{fill:#1f2328}  .m{fill:#59636e}  .t{fill:#d0d7de}  .a{fill:#dd2d51}
+  .stk{stroke:#dd2d51}  .trk{fill:#eaeef2}  .ar{fill:#dd2d51;fill-opacity:.14}
   @media(prefers-color-scheme:dark){
-    .s{fill:#e6edf3} .m{fill:#7d8590} .t{fill:#30363d}
-    .stk{stroke:#e6edf3} .trk{fill:#21262d}
+    .s{fill:#f0f6fc} .m{fill:#9198a1} .t{fill:#30363d} .a{fill:#e04060}
+    .stk{stroke:#e04060} .trk{fill:#21262d} .ar{fill:#e04060;fill-opacity:.18}
   }
 </style>
 """
@@ -180,14 +180,14 @@ def build_stats(cal):
     ex, ey = pts[-1]
     inner = (
         f'{label(24,34,"CONTRIBUTIONS · LAST YEAR")}'
-        f'<text class="s" x="23" y="82" font-size="46" font-weight="700">{total:,}</text>'
+        f'<text class="a" x="23" y="82" font-size="46" font-weight="700">{total:,}</text>'
         f'<text class="s" x="{W-24}" y="40" font-size="21" font-weight="700" text-anchor="end">{active}</text>'
         f'<text class="m" x="{W-24}" y="55" font-size="9.5" letter-spacing="1.2" text-anchor="end">ACTIVE DAYS</text>'
         f'<text class="s" x="{W-24}" y="76" font-size="21" font-weight="700" text-anchor="end">{best}</text>'
         f'<text class="m" x="{W-24}" y="91" font-size="9.5" letter-spacing="1.2" text-anchor="end">BEST WEEK</text>'
-        f'<path class="trk" d="{area}"/>'
+        f'<path class="ar" d="{area}"/>'
         f'<polyline class="stk" fill="none" stroke-width="1.6" points="{line}"/>'
-        f'<circle class="s" cx="{ex:.1f}" cy="{ey:.1f}" r="2.6"/>'
+        f'<circle class="a" cx="{ex:.1f}" cy="{ey:.1f}" r="2.6"/>'
     )
     return svg(W, H, inner)
 
@@ -201,7 +201,7 @@ def build_streak(cur, longest):
             rng = nice(s["start"]) if s["start"] == s["end"] else f'{nice(s["start"])} → {nice(s["end"])}'
         return (
             f'<text class="m" x="{x}" y="30" font-size="9.5" letter-spacing="1.2">{lab}</text>'
-            f'<text class="s" x="{x-1}" y="76" font-size="40" font-weight="700">{s["n"]}'
+            f'<text class="a" x="{x-1}" y="76" font-size="40" font-weight="700">{s["n"]}'
             f'<tspan class="m" font-size="14" font-weight="400"> days</tspan></text>'
             f'<text class="m" x="{x}" y="98" font-size="11">{esc(rng)}</text>')
     inner = (block(24, "CURRENT STREAK", cur)
