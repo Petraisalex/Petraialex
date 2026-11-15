@@ -3,6 +3,7 @@
 art.py — draw the profile's static graphics in the banner's navy & pink.
 
 Outputs (all in art/):
+    about.svg               About Me as a box-drawn text file
     typing.svg              rotating "typed" tagline under the banner
     stack.svg               tech-stack tiles
     connect-<name>.svg      link buttons
@@ -137,6 +138,65 @@ def build_typing():
     return svg(W, H, inner, " · ".join(TAGLINES))
 
 
+ABOUT = [  # (key, wrapped lines)
+    ("study", ["Finance BSc → MSc International Business,",
+               "honours: Maastricht · Stellenbosch · Aston"]),
+    ("work",  ["Building the BI layer at Qorium, a biotech",
+               "growing real leather in a lab"]),
+    ("built", ["Fraud-detection model on 280,000+",
+               "transactions, Power BI risk dashboard on top"]),
+    ("won",   ["Junction Hackathon runner-up of 120+ teams:",
+               "automated ESG scoring for SME lending"]),
+    ("off",   ["Hyrox · boxing · live-coded music ·",
+               "memory sport · Japanese · FX markets"]),
+]
+
+
+def build_about():
+    """About Me as a box-drawn text file: pink frame, pink keys, light values.
+    Border runs are stretched with textLength so corners meet in any font."""
+    FS, CW, LH = 13, 13 * 0.6, 22
+    KEY = 8                                  # key column width, in characters
+    inner = max(len(l) for _, ls in ABOUT for l in ls) + KEY + 8
+    W = (inner + 2) * CW
+    rows = sum(len(ls) for _, ls in ABOUT) + (len(ABOUT) - 1)   # blank row between entries
+    top, H = 22, 22 + (rows + 2) * LH
+    bottom = H - 14
+    title = " about.txt "
+    left, right = CW / 2, W - CW / 2
+
+    def run(y, s, x1, x2, cls="ac"):
+        return (f'<text class="{cls}" x="{x1:.1f}" y="{y}" textLength="{x2 - x1:.1f}" '
+                f'lengthAdjust="spacingAndGlyphs">{s}</text>')
+
+    p = [
+        f'<text class="ac" x="0" y="{top}">┌─</text>',
+        f'<text class="fg" x="{2 * CW:.1f}" y="{top}" font-weight="700">{title}</text>',
+        run(top, "─" * (inner - len(title) - 1), (2 + len(title)) * CW, W - CW),
+        f'<text class="ac" x="{W - CW:.1f}" y="{top}">┐</text>',
+        f'<text class="ac" x="0" y="{bottom}">└</text>',
+        run(bottom, "─" * inner, CW, W - CW),
+        f'<text class="ac" x="{W - CW:.1f}" y="{bottom}">┘</text>',
+    ]
+    y = top + LH
+    for i, (key, lines) in enumerate(ABOUT):
+        for j, line in enumerate(lines):
+            y += LH if (i or j) else 0
+            if j == 0:
+                p.append(f'<text class="ac" x="{3 * CW:.1f}" y="{y}" font-weight="700">{key}</text>')
+                p.append(f'<text class="mu" x="{(3 + KEY - 2) * CW:.1f}" y="{y}">→</text>')
+            p.append(f'<text class="fg" x="{(3 + KEY) * CW:.1f}" y="{y}" xml:space="preserve">'
+                     f'{line.replace("&", "&amp;")}</text>')
+        if i < len(ABOUT) - 1:
+            y += LH
+    # side rails: one │ per text row so they read as characters
+    for yy in range(top + LH // 2, bottom - LH // 2 + 1, LH // 2):
+        p.append(f'<text class="ac" x="0" y="{yy + 4}">│</text>')
+        p.append(f'<text class="ac" x="{W - CW:.1f}" y="{yy + 4}">│</text>')
+    label = "About me. " + " ".join(f"{k}: {' '.join(ls)}." for k, ls in ABOUT)
+    return svg(round(W, 1), H, f'<g font-family="{MONO}" font-size="{FS}">{"".join(p)}</g>', label)
+
+
 def build_stack():
     TW, TH, GAP = 110, 112, 20
     W = len(STACK) * TW + (len(STACK) - 1) * GAP
@@ -172,7 +232,7 @@ def build_wave():
 
 
 def main():
-    outputs = {"typing.svg": build_typing(), "stack.svg": build_stack(), "wave.svg": build_wave()}
+    outputs = {"about.svg": build_about(), "typing.svg": build_typing(), "stack.svg": build_stack(), "wave.svg": build_wave()}
     for name, label in CONNECT:
         outputs[f"connect-{name}.svg"] = build_connect(name, label)
     for name, content in outputs.items():

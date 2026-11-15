@@ -13,13 +13,9 @@
 
 <table align="center">
 <tr>
-<td width="62%" valign="top">
+<td width="62%" valign="middle">
 
-- 🎓 Finance BSc behind me; now on the MSc International Business honours track across **Maastricht, Stellenbosch &amp; Aston**.
-- 🧬 Building the business-intelligence layer at **Qorium**, a biotech growing real leather in a lab.
-- 🛠️ Built a fraud-detection model on **280,000+ transactions**, with a Power BI risk dashboard on top.
-- 🏆 **Junction Hackathon runner-up** out of 120+ teams: automated ESG scoring for SME lending.
-- 🥊 Off-screen: Hyrox, boxing, live-coded music, memory sport, learning Japanese and the FX markets.
+<img src="art/about.svg" width="100%" alt="About me. Study: Finance BSc, now MSc International Business honours across Maastricht, Stellenbosch and Aston. Work: building the BI layer at Qorium, a biotech growing real leather in a lab. Built: a fraud-detection model on 280,000+ transactions with a Power BI risk dashboard. Won: Junction Hackathon runner-up of 120+ teams, automated ESG scoring for SME lending. Off-screen: Hyrox, boxing, live-coded music, memory sport, Japanese, FX markets.">
 
 </td>
 <td width="38%" align="center" valign="middle">
