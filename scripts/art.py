@@ -182,7 +182,7 @@ WHOAMI = [  # (key, wrapped lines)
 BASED_IN = "Maastricht, NL"
 LANGUAGES = [("English", 10, "native"), ("Russian", 10, "native"),
              ("Dutch", 7, "professional"), ("Japanese", 2, "learning")]
-OFF_SCREEN = ["live-coding music", "Hyrox & boxing"]
+OFF_SCREEN = ["live-coding music", "Hyrox & boxing", "wine tasting"]
 
 CARD_FS, CARD_CW, CARD_LH = 13, 13 * 0.6, 22
 CARD_INNER = 60                          # characters inside the frame
@@ -216,6 +216,11 @@ def frame(title, rows, label):
         y = top + (i + 1) * LH
         for col, text, cls, bold in row:
             weight = ' font-weight="700"' if bold else ""
+            if isinstance(text, list):      # inline pieces that flow together: [(text, class, bold)]
+                body = "".join(f'<tspan class="{c}"{" font-weight=\"700\"" if b else ""}>{xesc(t)}</tspan>'
+                               for t, c, b in text)
+                p.append(f'<text x="{(3 + col) * CW:.1f}" y="{y}" xml:space="preserve">{body}</text>')
+                continue
             p.append(f'<text class="{cls}" x="{(3 + col) * CW:.1f}" y="{y}"{weight} '
                      f'xml:space="preserve">{xesc(text)}</text>')
     for yy in range(top + LH // 2, bottom - LH // 2 + 1, LH // 2):   # side rails
@@ -238,21 +243,36 @@ def build_whoami():
     return frame("whoami.txt", rows, label)
 
 
+def wrap_items(items, width):
+    """Quote and comma-join items, breaking onto new lines so none exceeds width."""
+    lines, cur = [], ""
+    for i, it in enumerate(items):
+        piece = f'"{it}"' + ("," if i < len(items) - 1 else "")
+        if cur and len(cur) + 1 + len(piece) > width:
+            lines.append(cur)
+            cur = piece
+        else:
+            cur = f"{cur} {piece}" if cur else piece
+    return lines + [cur]
+
+
 def build_profile():
     def kv(indent, key, rest):
-        return [(indent, f'"{key}"', "ac", True), (indent + len(key) + 2, ": ", "mu", False)] + rest
+        """One flowing line: "key": followed by value pieces [(text, class)]."""
+        return [(indent, [(f'"{key}"', "ac", True), (": ", "mu", False)]
+                 + [(t, c, False) for t, c in rest], None, False)]
 
     rows = [[(0, "{", "mu", False)],
-            kv(2, "based_currently_in", [(24, f'"{BASED_IN}"', "fg", False), (26 + len(BASED_IN), ",", "mu", False)]),
-            kv(2, "languages", [(15, "{", "mu", False)])]
+            kv(2, "based_currently_in", [(f'"{BASED_IN}"', "fg"), (",", "mu")]),
+            kv(2, "languages", [("{", "mu")])]
     for name, level, word in LANGUAGES:
         bar = [(17, "█" * level, "ac", False)] if level else []
         if level < 10:
             bar.append((17 + level, "░" * (10 - level), "mu", False))
         rows.append([(4, f'"{name}"', "fg", False)] + bar + [(28, word, "mu", False)])
     rows += [[(2, "},", "mu", False)],
-             kv(2, "off_screen", [(16, "[", "mu", False)]),
-             [(4, ", ".join(f'"{h}"' for h in OFF_SCREEN), "fg", False)],
+             kv(2, "off_screen", [("[", "mu")]),
+             *[[(4, line, "fg", False)] for line in wrap_items(OFF_SCREEN, CARD_INNER - 8)],
              [(2, "]", "mu", False)],
              [(0, "}", "mu", False)]]
     label = (f"Profile. Based currently in {BASED_IN}. Languages: "
