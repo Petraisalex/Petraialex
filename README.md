@@ -13,9 +13,11 @@
 
 <table align="center">
 <tr>
-<td width="62%" valign="middle">
+<td width="62%" valign="top">
 
-<img src="art/about.svg" width="100%" alt="About me. Study: BSc International Business with a Finance major, and an MSc in Organizational Management across three business schools. Work: agentic workflows with n8n and business intelligence for SMEs and startups. Building: an XGBoost decision engine that scores tabular transactions in under 50 ms for high-velocity digital banks. Won: Junction Hackathon runner-up of 120+ teams. Off-screen: live-coding music, Hyrox and boxing, learning Japanese.">
+<img src="art/whoami.svg" width="100%" alt="Who am I. Study: BSc International Business with a Finance major, and an MSc in Organizational Management across three business schools. Work: agentic workflows with n8n and business intelligence for SMEs and startups. Build: an XGBoost decision engine scoring tabular transactions in under 50 ms for digital banks. Won: Junction Hackathon runner-up of 120+ teams.">
+
+<img src="art/profile.svg" width="100%" alt="Profile. Based currently in Maastricht, Netherlands. Languages: English (native), Russian (native), Dutch (professional), Japanese (learning), German (learning). Off-screen: live-coding music, Hyrox and boxing, wine tasting.">
 
 </td>
 <td width="38%" align="center" valign="middle">
@@ -37,10 +39,10 @@
 <!-- PROJECTS:START -->
 
 <p align="center">
-  <img src="art/projects-web.svg" width="100%" alt="Project web. hobby and business: t9-trading-floor, kaizena, petrakov-folio; quant finance: portfolio-recommendation-engine; business intelligence and ml: modastera-outbound-pipeline, blog-chart-spec; not in a cluster: assets">
+  <img src="art/projects-web.svg" width="100%" alt="Project web. hobby and business: t9-trading-floor, kaizena, petrakov-folio; quant finance: portfolio-recommendation-engine; business intelligence and ml: modastera-outbound-pipeline, blog-chart-spec">
 </p>
 
-<p align="center"><sub>open source: &nbsp;<a href="https://github.com/Petraisalex/portfolio-recommendation-engine">portfolio-recommendation-engine</a> &nbsp;·&nbsp; <a href="https://github.com/Petraisalex/assets">assets</a></sub></p>
+<p align="center"><sub>open source: &nbsp;<a href="https://github.com/Petraisalex/portfolio-recommendation-engine">portfolio-recommendation-engine</a></sub></p>
 
 <!-- PROJECTS:END -->
 

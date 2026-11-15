@@ -3,7 +3,7 @@
 art.py — draw the profile's static graphics in the banner's navy & pink.
 
 Outputs (all in art/):
-    about.svg               About Me as a box-drawn text file
+    whoami.svg, profile.svg About Me as box-drawn 'files' (work, and person)
     typing.svg              rotating "typed" tagline under the banner
     stack.svg               tech-stack tiles
     connect-<name>.svg      link buttons
@@ -168,7 +168,8 @@ def build_typing():
     return svg(W, H, inner, " · ".join(TAGLINES))
 
 
-ABOUT = [  # (key, wrapped lines)
+# --- About Me cards: box-drawn "files", same frame and width -----------------
+WHOAMI = [  # (key, wrapped lines)
     ("study", ["BSc International Business, Finance major",
                "MSc Organizational Management, 3 schools"]),
     ("work",  ["Agentic workflows (n8n) & business",
@@ -177,54 +178,108 @@ ABOUT = [  # (key, wrapped lines)
                "transactions in <50 ms for digital banks"]),
     ("won",   ["Junction Hackathon runner-up of 120+ teams:",
                "automated ESG scoring for SME lending"]),
-    ("off",   ["Live-coding music · Hyrox & boxing ·",
-               "learning Japanese"]),
 ]
+BASED_IN = "Maastricht, NL"
+LANGUAGES = [("English", 10, "native"), ("Russian", 10, "native"),
+             ("Dutch", 7, "professional"), ("Japanese", 2, "learning"),
+             ("German", 2, "learning")]
+OFF_SCREEN = ["live-coding music", "Hyrox & boxing", "wine tasting"]
+
+CARD_FS, CARD_CW, CARD_LH = 13, 13 * 0.6, 22
+CARD_INNER = 60                          # characters inside the frame
 
 
-def build_about():
-    """About Me as a box-drawn text file: pink frame, pink keys, light values.
-    Border runs are stretched with textLength so corners meet in any font."""
-    FS, CW, LH = 13, 13 * 0.6, 22
-    KEY = 8                                  # key column width, in characters
-    inner = max(len(l) for _, ls in ABOUT for l in ls) + KEY + 8
+def frame(title, rows, label):
+    """rows: list of rows; each row is a list of (column, text, class, bold).
+    An empty list is a blank line. Border runs are stretched with textLength so
+    the corners meet in any monospace font."""
+    CW, LH, inner = CARD_CW, CARD_LH, CARD_INNER
     W = (inner + 2) * CW
-    rows = sum(len(ls) for _, ls in ABOUT) + (len(ABOUT) - 1)   # blank row between entries
-    top, H = 22, 22 + (rows + 2) * LH
+    top = 22
+    H = top + (len(rows) + 1) * LH + 8
     bottom = H - 14
-    title = " about.txt "
-    left, right = CW / 2, W - CW / 2
+    title = f" {title} "
 
-    def run(y, s, x1, x2, cls="ac"):
-        return (f'<text class="{cls}" x="{x1:.1f}" y="{y}" textLength="{x2 - x1:.1f}" '
+    def run(y, s, x1, x2):
+        return (f'<text class="ac" x="{x1:.1f}" y="{y}" textLength="{x2 - x1:.1f}" '
                 f'lengthAdjust="spacingAndGlyphs">{s}</text>')
 
     p = [
         f'<text class="ac" x="0" y="{top}">┌─</text>',
-        f'<text class="fg" x="{2 * CW:.1f}" y="{top}" font-weight="700">{title}</text>',
+        f'<text class="fg" x="{2 * CW:.1f}" y="{top}" font-weight="700">{xesc(title)}</text>',
         run(top, "─" * (inner - len(title) - 1), (2 + len(title)) * CW, W - CW),
         f'<text class="ac" x="{W - CW:.1f}" y="{top}">┐</text>',
         f'<text class="ac" x="0" y="{bottom}">└</text>',
         run(bottom, "─" * inner, CW, W - CW),
         f'<text class="ac" x="{W - CW:.1f}" y="{bottom}">┘</text>',
     ]
-    y = top + LH
-    for i, (key, lines) in enumerate(ABOUT):
-        for j, line in enumerate(lines):
-            y += LH if (i or j) else 0
-            if j == 0:
-                p.append(f'<text class="ac" x="{3 * CW:.1f}" y="{y}" font-weight="700">{key}</text>')
-                p.append(f'<text class="mu" x="{(3 + KEY - 2) * CW:.1f}" y="{y}">→</text>')
-            p.append(f'<text class="fg" x="{(3 + KEY) * CW:.1f}" y="{y}" xml:space="preserve">'
-                     f'{xesc(line)}</text>')
-        if i < len(ABOUT) - 1:
-            y += LH
-    # side rails: one │ per text row so they read as characters
-    for yy in range(top + LH // 2, bottom - LH // 2 + 1, LH // 2):
+    for i, row in enumerate(rows):
+        y = top + (i + 1) * LH
+        for col, text, cls, bold in row:
+            weight = ' font-weight="700"' if bold else ""
+            if isinstance(text, list):      # inline pieces that flow together: [(text, class, bold)]
+                body = "".join(f'<tspan class="{c}"{" font-weight=\"700\"" if b else ""}>{xesc(t)}</tspan>'
+                               for t, c, b in text)
+                p.append(f'<text x="{(3 + col) * CW:.1f}" y="{y}" xml:space="preserve">{body}</text>')
+                continue
+            p.append(f'<text class="{cls}" x="{(3 + col) * CW:.1f}" y="{y}"{weight} '
+                     f'xml:space="preserve">{xesc(text)}</text>')
+    for yy in range(top + LH // 2, bottom - LH // 2 + 1, LH // 2):   # side rails
         p.append(f'<text class="ac" x="0" y="{yy + 4}">│</text>')
         p.append(f'<text class="ac" x="{W - CW:.1f}" y="{yy + 4}">│</text>')
-    label = "About me. " + " ".join(f"{k}: {' '.join(ls)}." for k, ls in ABOUT)
-    return svg(round(W, 1), H, f'<g font-family="{MONO}" font-size="{FS}">{"".join(p)}</g>', label)
+    return svg(round(W, 1), H, f'<g font-family="{MONO}" font-size="{CARD_FS}">{"".join(p)}</g>', label)
+
+
+def build_whoami():
+    KEY, rows = 8, []
+    for i, (key, lines) in enumerate(WHOAMI):
+        for j, line in enumerate(lines):
+            row = [(KEY, line, "fg", False)]
+            if j == 0:
+                row = [(0, key, "ac", True), (KEY - 2, "→", "mu", False)] + row
+            rows.append(row)
+        if i < len(WHOAMI) - 1:
+            rows.append([])
+    label = "Who am I. " + " ".join(f"{k}: {' '.join(ls)}." for k, ls in WHOAMI)
+    return frame("whoami.txt", rows, label)
+
+
+def wrap_items(items, width):
+    """Quote and comma-join items, breaking onto new lines so none exceeds width."""
+    lines, cur = [], ""
+    for i, it in enumerate(items):
+        piece = f'"{it}"' + ("," if i < len(items) - 1 else "")
+        if cur and len(cur) + 1 + len(piece) > width:
+            lines.append(cur)
+            cur = piece
+        else:
+            cur = f"{cur} {piece}" if cur else piece
+    return lines + [cur]
+
+
+def build_profile():
+    def kv(indent, key, rest):
+        """One flowing line: "key": followed by value pieces [(text, class)]."""
+        return [(indent, [(f'"{key}"', "ac", True), (": ", "mu", False)]
+                 + [(t, c, False) for t, c in rest], None, False)]
+
+    rows = [[(0, "{", "mu", False)],
+            kv(2, "based_currently_in", [(f'"{BASED_IN}"', "fg"), (",", "mu")]),
+            kv(2, "languages", [("{", "mu")])]
+    for name, level, word in LANGUAGES:
+        bar = [(17, "█" * level, "ac", False)] if level else []
+        if level < 10:
+            bar.append((17 + level, "░" * (10 - level), "mu", False))
+        rows.append([(4, f'"{name}"', "fg", False)] + bar + [(28, word, "mu", False)])
+    rows += [[(2, "},", "mu", False)],
+             kv(2, "off_screen", [("[", "mu")]),
+             *[[(4, line, "fg", False)] for line in wrap_items(OFF_SCREEN, CARD_INNER - 8)],
+             [(2, "]", "mu", False)],
+             [(0, "}", "mu", False)]]
+    label = (f"Profile. Based currently in {BASED_IN}. Languages: "
+             + ", ".join(f"{n} ({w})" for n, _, w in LANGUAGES)
+             + ". Off-screen: " + ", ".join(OFF_SCREEN) + ".")
+    return frame("profile.json", rows, label)
 
 
 def build_stack():
@@ -280,7 +335,7 @@ def build_wave():
 
 
 def main():
-    outputs = {"about.svg": build_about(), "typing.svg": build_typing(), "stack.svg": build_stack(), "wave.svg": build_wave()}
+    outputs = {"whoami.svg": build_whoami(), "profile.svg": build_profile(), "typing.svg": build_typing(), "stack.svg": build_stack(), "wave.svg": build_wave()}
     for name, label in CONNECT:
         outputs[f"connect-{name}.svg"] = build_connect(name, label)
     for name, content in outputs.items():
