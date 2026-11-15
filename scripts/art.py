@@ -37,10 +37,13 @@ TAGLINES = [
     "Hyrox, boxing & live-coded music",
 ]
 
-MASTERED = ["python", "powerbi", "excel", "r", "git"]
-LEARNING = ["xgboost", "pytorch"]
-LABELS = {"python": "Python", "pytorch": "PyTorch", "r": "R", "xgboost": "XGBoost",
-          "powerbi": "Power BI", "excel": "Excel", "git": "Git"}
+MASTERED = ["python", "n8n", "powerbi", "excel", "r", "git"]
+LEARNING = ["catboost", "shap", "fastapi", "docker", "mlflow",
+            "googlebigquery", "looker", "umap", "bertopic"]
+LABELS = {"python": "Python", "n8n": "n8n", "powerbi": "Power BI", "excel": "Excel", "r": "R",
+          "git": "Git", "catboost": "CatBoost", "shap": "SHAP", "fastapi": "FastAPI",
+          "docker": "Docker", "mlflow": "MLflow", "googlebigquery": "BigQuery",
+          "looker": "Looker", "umap": "UMAP", "bertopic": "BERTopic"}
 
 CONNECT = [("linkedin", "LinkedIn"), ("instagram", "Instagram"), ("email", "Email")]
 
@@ -74,12 +77,25 @@ def mark(name, x, y, size):
         body = ('<rect class="ac" x="2" y="2" width="20" height="20" rx="4"/>'
                 '<path class="bgs" d="M8 7l8 10M16 7L8 17" stroke-width="2.6" '
                 'stroke-linecap="round" fill="none"/>')
-    elif name == "xgboost":  # small decision tree
-        body = ('<path class="acs" d="M12 6v4M12 10L6 15M12 10l6 5" fill="none" stroke-width="2" '
-                'stroke-linecap="round"/>'
-                '<circle class="ac" cx="12" cy="5" r="3"/>'
-                '<rect class="ac" x="2.5" y="15" width="7" height="6" rx="1.6"/>'
-                '<rect class="ac" x="14.5" y="15" width="7" height="6" rx="1.6"/>')
+    elif name == "catboost":  # boosted trees: three stumps, growing
+        body = ''.join(f'<path class="acs" d="M{x} {y0}v4M{x} {y0 + 4}l-2.6 4M{x} {y0 + 4}l2.6 4" '
+                       f'fill="none" stroke-width="1.8" stroke-linecap="round"/>'
+                       f'<circle class="ac" cx="{x}" cy="{y0}" r="1.9"/>'
+                       for x, y0 in ((4.5, 11), (12, 7), (19.5, 3)))
+        body += '<path class="acs" d="M2 22h20" stroke-width="1.8" stroke-linecap="round"/>'
+    elif name == "shap":     # waterfall of +/- contributions
+        body = ''.join(f'<rect class="ac" x="{x}" y="{y}" width="{w}" height="3.2" rx="1"/>'
+                       for x, y, w in ((3, 3, 9), (12, 7.5, 6), (9, 12, 3), (9, 16.5, 11)))
+        body += '<path class="acs" d="M3 21.5h18" stroke-width="1.4" stroke-linecap="round"/>'
+    elif name == "umap":     # points falling into clusters
+        pts = ((5, 6), (7.5, 4.5), (4, 9), (7, 8), (17, 5), (19.5, 7.5), (16, 8.5),
+               (10, 17), (13, 19), (11.5, 15), (14.5, 16.5), (21, 19))
+        body = ''.join(f'<circle class="ac" cx="{x}" cy="{y}" r="1.7"/>' for x, y in pts)
+    elif name == "bertopic":  # a cluster with a topic tag
+        body = (''.join(f'<circle class="ac" cx="{x}" cy="{y}" r="1.8"/>'
+                        for x, y in ((5, 14), (8, 11), (7, 17.5), (10.5, 15), (4, 19)))
+                + '<path class="ac" d="M13 3h7.5a1.5 1.5 0 0 1 1.5 1.5v4a1.5 1.5 0 0 1-1.5 1.5H13l-3-3.5z"/>'
+                + '<path class="acs" d="M11 12.5l3-3" stroke-width="1.6" stroke-linecap="round"/>')
     elif name == "email":   # envelope
         body = ('<rect class="acs" x="2.5" y="5" width="19" height="14" rx="2.5" '
                 'fill="none" stroke-width="2"/>'
@@ -209,31 +225,31 @@ def build_about():
 
 
 def build_stack():
-    """Two groups of tiles: what I've mastered, and what I'm learning now."""
-    TW, TH, GAP, SPLIT, TOP = 92, 100, 12, 56, 30
+    """Two rows of tiles: what I've mastered, and what I'm learning now."""
+    TW, TH, GAP, LBL, ROWGAP = 72, 84, 8, 22, 24
+    W = len(LEARNING) * TW + (len(LEARNING) - 1) * GAP
 
-    def group(names, x0, title, dashed=False):
-        out = [f'<text class="mu" x="{x0}" y="14" font-family="{SANS}" font-size="11" '
-               f'font-weight="700" letter-spacing="2.5">{title}</text>']
+    def row(names, y0, title, dashed=False):
+        span = len(names) * TW + (len(names) - 1) * GAP
+        x0 = (W - span) / 2
+        out = [f'<text class="mu" x="{W / 2}" y="{y0 + 12}" text-anchor="middle" font-family="{SANS}" '
+               f'font-size="11" font-weight="700" letter-spacing="2.5">{title}</text>']
+        dash = ' stroke-dasharray="5 4"' if dashed else ""
         for i, name in enumerate(names):
-            x = x0 + i * (TW + GAP)
-            dash = ' stroke-dasharray="5 4"' if dashed else ""
-            out.append(f'<rect class="cd" x="{x + .5}" y="{TOP + .5}" width="{TW - 1}" '
-                       f'height="{TH - 1}" rx="14"{dash}/>')
-            out.append(mark(name, x + TW / 2 - 19, TOP + 16, 38))
-            out.append(f'<text class="fg" x="{x + TW / 2}" y="{TOP + 80}" text-anchor="middle" '
-                       f'font-family="{SANS}" font-size="12.5" font-weight="600">{LABELS[name]}</text>')
-        return out, len(names) * TW + (len(names) - 1) * GAP
+            x, y = x0 + i * (TW + GAP), y0 + LBL
+            out.append(f'<rect class="cd" x="{x + .5}" y="{y + .5}" width="{TW - 1}" height="{TH - 1}" rx="12"{dash}/>')
+            out.append(mark(name, x + TW / 2 - 16, y + 14, 32))
+            out.append(f'<text class="fg" x="{x + TW / 2}" y="{y + 68}" text-anchor="middle" '
+                       f'font-family="{SANS}" font-size="11.5" font-weight="600">{LABELS[name]}</text>')
+        return out
 
-    left, lw = group(MASTERED, 0, "MASTERED")
-    rx = lw + SPLIT
-    right, rw = group(LEARNING, rx, "LEARNING NOW", dashed=True)
-    W, H = rx + rw, TOP + TH
-    divider = (f'<line class="acs" x1="{lw + SPLIT / 2}" y1="{TOP + 10}" x2="{lw + SPLIT / 2}" '
-               f'y2="{H - 10}" stroke-width="1" stroke-dasharray="2 5" opacity=".6"/>')
+    top = row(MASTERED, 0, "MASTERED")
+    y2 = LBL + TH + ROWGAP
+    bottom = row(LEARNING, y2, "LEARNING NOW", dashed=True)
+    H = y2 + LBL + TH
     label = ("Mastered: " + ", ".join(LABELS[n] for n in MASTERED)
              + ". Learning now: " + ", ".join(LABELS[n] for n in LEARNING) + ".")
-    return svg(W, H, "".join(left) + divider + "".join(right), label)
+    return svg(W, H, "".join(top + bottom), label)
 
 
 def build_connect(name, label):

@@ -1,0 +1,2 @@
+# Hide the Languages bar on the repo page: no file counts toward a language.
+* linguist-detectable=false
