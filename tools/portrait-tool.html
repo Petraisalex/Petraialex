@@ -1,0 +1,619 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Glyph Portrait</title>
+<style>
+:root{--bg:#0d1117;--panel:#151b23;--line:#30363d;--text:#f0f6fc;--muted:#9198a1;--pink:#e04060;--pink-2:#b33853}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--text);font:13px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;display:grid;grid-template-columns:340px minmax(0,1fr);overflow:hidden}
+aside{overflow:auto;border-right:1px solid var(--line);padding:14px 16px 40px}
+main{display:grid;grid-template-rows:minmax(0,1fr) 260px;min-width:0;min-height:0}
+#stage{position:relative;overflow:auto;display:grid;place-items:center;padding:20px;background:repeating-conic-gradient(#151b23 0 25%,#10151c 0 50%) 0 0/22px 22px}
+#stage canvas{position:absolute;inset:20px;width:calc(100% - 40px);height:calc(100% - 40px);object-fit:contain}
+#drop{position:absolute;inset:12px;border:2px dashed var(--pink);border-radius:12px;display:none;place-items:center;font-size:18px;background:#0d1117cc;pointer-events:none}
+body.dragging #drop{display:grid}
+#gallery{border-top:1px solid var(--line);overflow:auto;padding:10px 14px;background:var(--bg)}
+.cat{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:10px 0 6px}
+.cards{display:flex;gap:8px;flex-wrap:wrap}
+.card{width:118px;border:1px solid var(--line);border-radius:8px;background:var(--panel);padding:6px;cursor:pointer;text-align:left;color:var(--text);font:inherit}
+.card:hover{border-color:var(--muted)}
+.card.on{border-color:var(--pink);box-shadow:0 0 0 1px var(--pink)}
+.card canvas{width:104px;height:104px;display:block;border-radius:4px;background:#0d1117}
+.card .n{font-size:11px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card .g{font:11px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--pink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+h1{font-size:15px;margin:0 0 2px}
+h1 span{color:var(--pink)}
+.sub{color:var(--muted);margin:0 0 6px}
+h2{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:18px 0 6px;border-top:1px solid var(--line);padding-top:12px}
+.row{display:grid;grid-template-columns:104px minmax(0,1fr) 40px;align-items:center;gap:8px;margin:5px 0}
+.row output{font:11px ui-monospace,Menlo,monospace;color:var(--muted);text-align:right}
+.row.two{grid-template-columns:104px minmax(0,1fr)}
+input[type=range]{width:100%;accent-color:var(--pink)}
+input[type=checkbox]{accent-color:var(--pink)}
+input[type=text],select{width:100%;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:5px 7px;font:inherit}
+input[type=color]{width:100%;height:28px;border:1px solid var(--line);border-radius:6px;background:var(--panel);padding:2px}
+button.b{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:6px 10px;font:inherit;cursor:pointer}
+button.b:hover{border-color:var(--muted)}
+button.p{background:var(--pink);border-color:var(--pink);color:#fff;font-weight:600}
+.btns{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.chk{display:flex;align-items:center;gap:8px;margin:5px 0}
+.note{color:var(--muted);font-size:11.5px;margin:6px 0}
+#info{position:absolute;top:8px;right:12px;font:11px ui-monospace,Menlo,monospace;color:var(--muted);background:#0d1117cc;padding:3px 7px;border-radius:5px}
+#presetList{display:flex;flex-direction:column;gap:4px;margin-top:6px}
+#presetList div{display:flex;gap:4px}
+#presetList div button:first-child{flex:1;text-align:left}
+@media (max-width:760px){body{grid-template-columns:1fr;overflow:auto;height:auto}aside{border-right:0;border-bottom:1px solid var(--line)}main{grid-template-rows:60vh auto}}
+</style>
+</head>
+<body>
+<aside>
+  <h1>Glyph <span>Portrait</span></h1>
+  <p class="sub">Turn a photo into character art. Everything runs on your computer.</p>
+
+  <div class="btns">
+    <button class="b p" id="openBtn">Open photo or video</button>
+    <input type="file" id="file" accept="image/*,video/*" hidden>
+  </div>
+  <p class="note">Or drag a file onto the preview.</p>
+
+  <h2>Framing</h2>
+  <div class="row two"><span>Shape</span>
+    <select id="crop">
+      <option value="circle">Circle (matches banner avatar)</option>
+      <option value="square">Square</option>
+      <option value="portrait">Portrait 4:5</option>
+      <option value="original">Original proportions</option>
+    </select></div>
+  <div class="row"><span>Zoom</span><input type="range" id="zoom" min="100" max="300" step="1"><output></output></div>
+  <div class="row"><span>Focus left/right</span><input type="range" id="focusX" min="0" max="100" step="1"><output></output></div>
+  <div class="row"><span>Focus up/down</span><input type="range" id="focusY" min="0" max="100" step="1"><output></output></div>
+
+  <h2>Characters</h2>
+  <div class="row two"><span>Set</span><select id="set"></select></div>
+  <div class="row"><span>Cell size (columns)</span><input type="range" id="cols" min="20" max="220" step="1"><output></output></div>
+  <div class="row"><span>Font size px</span><input type="range" id="font" min="5" max="24" step="1"><output></output></div>
+  <div class="row"><span>Levels used</span><input type="range" id="levels" min="2" max="70" step="1"><output></output></div>
+  <div class="row"><span>Character offset</span><input type="range" id="offset" min="-10" max="10" step="1"><output></output></div>
+  <div class="row two"><span>Inject (max 10)</span><input type="text" id="custom" maxlength="10" placeholder="e.g. AP$♥"></div>
+  <div class="row two"><span>Injection mode</span>
+    <select id="customMode">
+      <option value="add">Add to the set</option>
+      <option value="only">Use only these</option>
+    </select></div>
+  <label class="chk"><input type="checkbox" id="autoSort"> Sort glyphs by ink (recommended)</label>
+
+  <h2>Depth &amp; tone</h2>
+  <div class="row"><span>Depth</span><input type="range" id="depth" min="0.2" max="3" step="0.05"><output></output></div>
+  <div class="row"><span>Contrast</span><input type="range" id="contrast" min="-100" max="150" step="1"><output></output></div>
+  <div class="row"><span>Brightness</span><input type="range" id="brightness" min="-60" max="60" step="1"><output></output></div>
+  <label class="chk"><input type="checkbox" id="invert"> Invert (for light backgrounds)</label>
+  <label class="chk"><input type="checkbox" id="dither"> Dither</label>
+
+  <h2>Colour</h2>
+  <div class="row two"><span>Mode</span>
+    <select id="colorMode">
+      <option value="single">Single colour</option>
+      <option value="palette">Palette-mapped</option>
+      <option value="image">Photo colours</option>
+    </select></div>
+  <div class="row two" id="singleRow"><span>Colour</span><input type="color" id="color"></div>
+  <div class="row two" id="paletteRow"><span>Palette</span><select id="palette"></select></div>
+  <label class="chk"><input type="checkbox" id="bgTransparent"> Transparent background</label>
+  <div class="row two" id="bgRow"><span>Background</span><input type="color" id="bg"></div>
+
+  <h2>Animation</h2>
+  <label class="chk"><input type="checkbox" id="animDepth"> Animate depth</label>
+  <label class="chk"><input type="checkbox" id="animOffset"> Animate character offset</label>
+  <div class="row"><span>Offset swing</span><input type="range" id="swing" min="1" max="10" step="1"><output></output></div>
+  <div class="row"><span>Frames</span><input type="range" id="frames" min="2" max="16" step="1"><output></output></div>
+  <div class="row"><span>Speed (fps)</span><input type="range" id="fps" min="1" max="24" step="1"><output></output></div>
+  <p class="note">Animated SVGs get big (each frame is a full copy), and GitHub may only show the first frame.</p>
+
+  <h2>Export</h2>
+  <div class="btns">
+    <button class="b p" id="svgBtn">SVG</button>
+    <button class="b" id="pngBtn">PNG</button>
+    <button class="b" id="txtBtn">TXT grid</button>
+  </div>
+  <p class="note" id="sizeNote"></p>
+
+  <h2>Presets</h2>
+  <div class="btns">
+    <button class="b" id="saveBtn">Save current</button>
+    <button class="b" id="exportPresetsBtn">Export file</button>
+    <button class="b" id="importPresetsBtn">Import file</button>
+    <button class="b" id="resetBtn">Reset</button>
+    <input type="file" id="presetFile" accept="application/json" hidden>
+  </div>
+  <div id="presetList"></div>
+</aside>
+
+<main>
+  <div id="stage">
+    <canvas id="out"></canvas>
+    <div id="info"></div>
+    <div id="drop">Drop your photo</div>
+    <video id="video" muted loop playsinline hidden></video>
+  </div>
+  <div id="gallery"></div>
+</main>
+
+<script>
+"use strict";
+const FONT = "ui-monospace, SFMono-Regular, Menlo, Consolas, 'Noto Sans Mono', 'DejaVu Sans Mono', monospace";
+
+// 48 character sets in 11 categories
+const SETS = [
+  ["Classic", "Standard", " .:-=+*#%@"],
+  ["Classic", "Detailed", " .'`^\",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$"],
+  ["Classic", "Simple", " .oO@"],
+  ["Classic", "Minimal", " .:"],
+  ["Classic", "Old portrait", " .`:-=+*cs#%@"],
+  ["Numbers", "Digits", " 1742358690"],
+  ["Numbers", "Binary", " 01"],
+  ["Numbers", "Hex", " 0123456789ABCDEF"],
+  ["Numbers", "Roman", " IVXLCDM"],
+  ["Symbols", "Punctuation", " .,:;!?"],
+  ["Symbols", "Maths", " -+=×÷±≠≈∑"],
+  ["Symbols", "Arrows", " ←↑→↓↔↕⇒⇔"],
+  ["Symbols", "Currency", " ¢$€£¥₿"],
+  ["Symbols", "Stars", " ·∙•✦★✶✷✸"],
+  ["Blocks", "Shade", " ░▒▓█"],
+  ["Blocks", "Vertical bars", " ▏▎▍▌▋▊▉█"],
+  ["Blocks", "Horizontal bars", " ▁▂▃▄▅▆▇█"],
+  ["Blocks", "Quadrants", " ▖▘▝▗▚▞▙▛▜▟█"],
+  ["Blocks", "Halves", " ▀▄█"],
+  ["Braille", "Braille 2×4 (true pixels)", "BRAILLE"],
+  ["Braille", "Braille density", " ⠁⠃⠇⡇⣇⣧⣷⣿"],
+  ["Braille", "Dots", " ⋅∘○◎●"],
+  ["Geometric", "Circles", " ·∘○◌◍◎●"],
+  ["Geometric", "Squares", " ▫□▪■"],
+  ["Geometric", "Triangles", " ▵△▴▲"],
+  ["Geometric", "Diamonds", " ⋄◇◈◆"],
+  ["Geometric", "Mixed shapes", " ·▫◇○△□◆●"],
+  ["Languages", "Katakana", " ･ｰﾉｼﾂｿﾘﾝﾒｻﾈﾎﾖﾑﾙﾚｵﾓﾜ"],
+  ["Languages", "Hiragana", " ぃこしつのへりるさねぬめぼ"],
+  ["Languages", "Kanji", " 一二人大木本田国電書"],
+  ["Languages", "Greek", " ·ιτνπσαωδθΦΨΩ"],
+  ["Languages", "Cyrillic", " .иплжфщШЖЩ"],
+  ["Languages", "Hangul", " ㅡㅇㅁㅂ가나다밝뷁"],
+  ["Languages", "Runes", " ᛁᚾᛏᚱᚦᛒᛗᛞ"],
+  ["Cards & games", "Suits", " ♤♧♡♢♠♣♥♦"],
+  ["Cards & games", "Card ranks", " A23456789TJQK"],
+  ["Cards & games", "Dice", " ⚀⚁⚂⚃⚄⚅"],
+  ["Cards & games", "Chess", " ♙♘♗♖♕♔♟♞♝♜♛♚"],
+  ["Box drawing", "Thin lines", " ─│┌┼"],
+  ["Box drawing", "Heavy lines", " ━┃┏╋"],
+  ["Box drawing", "Double lines", " ═║╔╬"],
+  ["Unicode", "Music", " ♪♩♫♬"],
+  ["Unicode", "Weather", " ·☁☂☃☀"],
+  ["Unicode", "Zodiac", " ♈♉♊♋♌♍♎♏♐♑♒♓"],
+  ["Unicode", "Bullets", " ·•◦‣⁂※"],
+  ["Code", "Brackets", " ()[]{}<>"],
+  ["Code", "Operators", " .-=+*/&|%#@"],
+  ["Code", "Hacker", " .:;01{}[]</>#$"],
+].map(([cat, name, chars], i) => ({ i, cat, name, chars, braille: chars === "BRAILLE" }));
+
+const PALETTES = {
+  "Petrakov pink": ["#2a1620", "#562737", "#852f45", "#b33853", "#e04060", "#f6c6cf"],
+  "Pink on paper": ["#f6c6cf", "#ee96a8", "#e76a83", "#dd2d51", "#852f45"],
+  "Mono":          ["#30363d", "#59636e", "#9198a1", "#d1d9e0", "#f0f6fc"],
+  "Matrix":        ["#03140a", "#0b3d1c", "#1a7a36", "#36c95a", "#b6ffc8"],
+  "Sunset":        ["#1b1035", "#5b1f5e", "#b33853", "#f27c4a", "#ffd479"],
+  "Ice":           ["#0b1e33", "#164a7a", "#2f86c9", "#7cc4f0", "#e6f6ff"],
+};
+
+const DEFAULTS = {
+  set: 0, crop: "circle", zoom: 100, focusX: 50, focusY: 45,
+  cols: 110, font: 10, levels: 70, offset: 0, custom: "", customMode: "add", autoSort: true,
+  depth: 1, contrast: 20, brightness: 0, invert: false, dither: false,
+  colorMode: "single", color: "#e04060", palette: "Petrakov pink",
+  bgTransparent: true, bg: "#0d1117",
+  animDepth: false, animOffset: false, swing: 3, frames: 6, fps: 8,
+};
+let S = { ...DEFAULTS };
+
+const $ = id => document.getElementById(id);
+
+// ---------- glyph metrics ----------
+const measureCtx = document.createElement("canvas").getContext("2d", { willReadFrequently: true });
+const inkCache = new Map();
+function ink(ch) {
+  if (inkCache.has(ch)) return inkCache.get(ch);
+  if (ch === " ") { inkCache.set(ch, 0); return 0; }
+  const c = measureCtx.canvas; c.width = 40; c.height = 40;
+  measureCtx.clearRect(0, 0, 40, 40);
+  measureCtx.font = `28px ${FONT}`;
+  measureCtx.textAlign = "center"; measureCtx.textBaseline = "middle";
+  measureCtx.fillStyle = "#000";
+  measureCtx.fillText(ch, 20, 21);
+  const d = measureCtx.getImageData(0, 0, 40, 40).data;
+  let sum = 0; for (let k = 3; k < d.length; k += 4) sum += d[k];
+  inkCache.set(ch, sum); return sum;
+}
+function glyphWidth(ch, px) { measureCtx.font = `${px}px ${FONT}`; return measureCtx.measureText(ch).width; }
+
+function rampFor(set, st) {
+  if (set.braille) return null;
+  let chars = [...set.chars];
+  const custom = [...(st.custom || "")].slice(0, 10);
+  if (custom.length) chars = st.customMode === "only" ? [" ", ...custom] : chars.concat(custom);
+  chars = [...new Set(chars)];
+  if (!chars.includes(" ")) chars.unshift(" ");
+  if (st.autoSort) chars.sort((a, b) => ink(a) - ink(b));
+  const n = Math.max(2, Math.min(st.levels, chars.length));
+  if (n < chars.length) {
+    const picked = [];
+    for (let k = 0; k < n; k++) picked.push(chars[Math.round(k * (chars.length - 1) / (n - 1))]);
+    chars = picked;
+  }
+  return chars;
+}
+
+function cellMetrics(set, ramp, px) {
+  const glyphs = set.braille ? ["⣿"] : ramp;
+  let w = px * 0.6;
+  for (const g of glyphs) if (g !== " ") w = Math.max(w, glyphWidth(g, px));
+  return { cw: Math.ceil(w * 100) / 100, ch: Math.round(px * 1.18 * 100) / 100 };
+}
+
+// ---------- source ----------
+let source = null, sourceW = 0, sourceH = 0, isVideo = false;
+function placeholder() {
+  const c = document.createElement("canvas"); c.width = c.height = 400;
+  const g = c.getContext("2d");
+  g.fillStyle = "#000"; g.fillRect(0, 0, 400, 400);
+  const r = g.createRadialGradient(160, 150, 10, 200, 210, 210);
+  r.addColorStop(0, "#ffe2ea"); r.addColorStop(.45, "#e04060"); r.addColorStop(1, "#000");
+  g.fillStyle = r; g.beginPath(); g.arc(200, 210, 170, 0, Math.PI * 2); g.fill();
+  g.fillStyle = "#fff"; g.font = "bold 60px sans-serif"; g.textAlign = "center"; g.fillText("A.P", 200, 230);
+  return c;
+}
+function setSource(el, w, h, video) { source = el; sourceW = w; sourceH = h; isVideo = video; schedule(true); }
+
+function cropRect(st) {
+  const asp = st.crop === "original" ? sourceW / sourceH : st.crop === "portrait" ? 0.8 : 1;
+  let sw = sourceW, sh = sw / asp;
+  if (sh > sourceH) { sh = sourceH; sw = sh * asp; }
+  const z = st.zoom / 100; sw /= z; sh /= z;
+  const sx = (sourceW - sw) * st.focusX / 100, sy = (sourceH - sh) * st.focusY / 100;
+  return { sx, sy, sw, sh, asp };
+}
+
+// ---------- core render ----------
+const sampleCanvas = document.createElement("canvas");
+const sampleCtx = sampleCanvas.getContext("2d", { willReadFrequently: true });
+
+function hexToRgb(h) { const n = parseInt(h.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
+function rgbHex(r, g, b) { return "#" + ((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1); }
+function paletteColor(stops, t) {
+  const p = t * (stops.length - 1), k = Math.min(stops.length - 2, Math.floor(p)), f = p - k;
+  const a = hexToRgb(stops[k]), b = hexToRgb(stops[k + 1]);
+  return rgbHex(...a.map((v, j) => Math.round(v + (b[j] - v) * f)));
+}
+
+// Returns {cols, rows, cw, ch, px, cells:[{c, col}|null]}
+function compute(st, colsOverride, pxOverride) {
+  const set = SETS[st.set];
+  const ramp = rampFor(set, st);
+  const px = pxOverride || st.font;
+  const { cw, ch } = cellMetrics(set, ramp, px);
+  const crop = cropRect(st);
+  const cols = colsOverride || st.cols;
+  const rows = Math.max(1, Math.round(cols * (crop.sh / crop.sw) * (cw / ch)));
+  const subX = set.braille ? 2 : 1, subY = set.braille ? 4 : 1;
+  const W = cols * subX, H = rows * subY;
+  sampleCanvas.width = W; sampleCanvas.height = H;
+  sampleCtx.imageSmoothingEnabled = true; sampleCtx.imageSmoothingQuality = "high";
+  sampleCtx.clearRect(0, 0, W, H);
+  sampleCtx.drawImage(source, crop.sx, crop.sy, crop.sw, crop.sh, 0, 0, W, H);
+  const d = sampleCtx.getImageData(0, 0, W, H).data;
+
+  // tone curve
+  const lum = new Float32Array(W * H);
+  const k = 1 + st.contrast / 100, br = st.brightness / 100;
+  for (let p = 0, q = 0; q < lum.length; p += 4, q++) {
+    let l = (0.2126 * d[p] + 0.7152 * d[p + 1] + 0.0722 * d[p + 2]) / 255;
+    l = (l - 0.5) * k + 0.5 + br;
+    l = Math.min(1, Math.max(0, l));
+    l = Math.pow(l, st.depth);
+    if (st.invert) l = 1 - l;
+    lum[q] = l;
+  }
+  const levelsN = set.braille ? 2 : ramp.length;
+  if (st.dither) floydSteinberg(lum, W, H, levelsN);
+
+  const stops = PALETTES[st.palette] || PALETTES["Petrakov pink"];
+  const circle = st.crop === "circle";
+  const cells = new Array(cols * rows);
+  for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
+    if (circle) {
+      const dx = (x + .5) / cols - .5, dy = (y + .5) / rows - .5;
+      if (dx * dx + dy * dy > .25) { cells[y * cols + x] = null; continue; }
+    }
+    let glyph, t, r = 0, g = 0, b = 0, cnt = 0;
+    if (set.braille) {
+      const bits = [[0x01, 0x08], [0x02, 0x10], [0x04, 0x20], [0x40, 0x80]];
+      let code = 0, tsum = 0;
+      for (let sy = 0; sy < 4; sy++) for (let sx = 0; sx < 2; sx++) {
+        const q = (y * 4 + sy) * W + x * 2 + sx, l = lum[q];
+        tsum += l;
+        const on = st.dither ? l > 0.5 : l > 0.5;
+        if (on) code |= bits[sy][sx];
+        r += d[q * 4]; g += d[q * 4 + 1]; b += d[q * 4 + 2]; cnt++;
+      }
+      t = tsum / 8;
+      if (st.offset) {
+        // offset in braille mode: shifts the threshold
+        code = 0;
+        const thr = Math.min(.95, Math.max(.05, .5 - st.offset * .05));
+        for (let sy = 0; sy < 4; sy++) for (let sx = 0; sx < 2; sx++)
+          if (lum[(y * 4 + sy) * W + x * 2 + sx] > thr) code |= bits[sy][sx];
+      }
+      glyph = code ? String.fromCharCode(0x2800 + code) : " ";
+    } else {
+      const q = y * W + x;
+      t = lum[q];
+      let idx = Math.round(t * (ramp.length - 1)) + st.offset;
+      idx = Math.min(ramp.length - 1, Math.max(0, idx));
+      glyph = ramp[idx];
+      r = d[q * 4]; g = d[q * 4 + 1]; b = d[q * 4 + 2]; cnt = 1;
+    }
+    if (glyph === " ") { cells[y * cols + x] = null; continue; }
+    let col;
+    if (st.colorMode === "single") col = st.color;
+    else if (st.colorMode === "palette") col = paletteColor(stops, Math.round(t * 15) / 15);
+    else col = rgbHex(Math.round(r / cnt) & 0xf0, Math.round(g / cnt) & 0xf0, Math.round(b / cnt) & 0xf0);
+    cells[y * cols + x] = { c: glyph, col };
+  }
+  return { cols, rows, cw, ch, px, cells };
+}
+
+function floydSteinberg(lum, W, H, n) {
+  const steps = n - 1;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const i = y * W + x, old = lum[i], nw = Math.round(old * steps) / steps, e = old - nw;
+    lum[i] = nw;
+    if (x + 1 < W) lum[i + 1] += e * 7 / 16;
+    if (y + 1 < H) {
+      if (x > 0) lum[i + W - 1] += e * 3 / 16;
+      lum[i + W] += e * 5 / 16;
+      if (x + 1 < W) lum[i + W + 1] += e / 16;
+    }
+  }
+  for (let i = 0; i < lum.length; i++) lum[i] = Math.min(1, Math.max(0, lum[i]));
+}
+
+function frameParams(st, k, n) {
+  const t = k / n, f = { ...st };
+  if (st.animDepth) f.depth = Math.max(0.2, st.depth * (1 + 0.5 * Math.sin(2 * Math.PI * t)));
+  if (st.animOffset) f.offset = st.offset + Math.round(st.swing * Math.sin(2 * Math.PI * t));
+  return f;
+}
+const animated = st => st.animDepth || st.animOffset;
+
+function draw(grid, canvas, st, scale) {
+  const dpr = scale || Math.min(2, window.devicePixelRatio || 1);
+  const w = grid.cols * grid.cw, h = grid.rows * grid.ch;
+  canvas.width = Math.ceil(w * dpr); canvas.height = Math.ceil(h * dpr);
+  const g = canvas.getContext("2d");
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  g.clearRect(0, 0, w, h);
+  if (!st.bgTransparent) { g.fillStyle = st.bg; g.fillRect(0, 0, w, h); }
+  g.font = `${grid.px}px ${FONT}`; g.textAlign = "center"; g.textBaseline = "alphabetic";
+  const base = grid.ch * 0.5 + grid.px * 0.36;
+  let last = "";
+  for (let y = 0; y < grid.rows; y++) for (let x = 0; x < grid.cols; x++) {
+    const c = grid.cells[y * grid.cols + x]; if (!c) continue;
+    if (c.col !== last) { g.fillStyle = c.col; last = c.col; }
+    g.fillText(c.c, x * grid.cw + grid.cw / 2, y * grid.ch + base);
+  }
+}
+
+// ---------- exports ----------
+const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+const r2 = v => Math.round(v * 100) / 100;
+function svgRows(grid, singleColour) {
+  const base = grid.ch * 0.5 + grid.px * 0.36, out = [];
+  for (let y = 0; y < grid.rows; y++) {
+    const runs = []; let cur = null;
+    for (let x = 0; x < grid.cols; x++) {
+      const c = grid.cells[y * grid.cols + x]; if (!c) continue;
+      const key = singleColour ? "" : c.col;
+      if (!cur || cur.key !== key) { cur = { key, xs: [], s: "" }; runs.push(cur); }
+      cur.xs.push(r2(x * grid.cw + grid.cw / 2)); cur.s += c.c;
+    }
+    if (!runs.length) continue;
+    const body = runs.map(r => `<tspan${r.key ? ` fill="${r.key}"` : ""} x="${r.xs.join(" ")}">${esc(r.s)}</tspan>`).join("");
+    out.push(`<text y="${r2(y * grid.ch + base)}">${body}</text>`);
+  }
+  return out.join("");
+}
+function buildSVG(st) {
+  const single = st.colorMode === "single";
+  const n = animated(st) ? st.frames : 1;
+  const grids = [];
+  for (let k = 0; k < n; k++) grids.push(compute(frameParams(st, k, n)));
+  const g0 = grids[0], w = r2(g0.cols * g0.cw), h = r2(g0.rows * g0.ch);
+  let css = `text{font-family:${FONT};font-size:${g0.px}px;text-anchor:middle}`;
+  let body;
+  if (n === 1) body = svgRows(g0, single);
+  else {
+    const dur = r2(n / st.fps);
+    css += `.f{visibility:hidden}.f0{visibility:visible}.f{animation:a ${dur}s steps(1,end) infinite}@keyframes a{0%{visibility:visible}${r2(100 / n)}%,100%{visibility:hidden}}`;
+    body = grids.map((g, k) => `<g class="f f${k}" style="animation-delay:${r2(k / st.fps)}s">${svgRows(g, single)}</g>`).join("");
+  }
+  const bg = st.bgTransparent ? "" : `<rect width="100%" height="100%" fill="${st.bg}"/>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" role="img" aria-label="Character-art portrait"${single ? ` fill="${st.color}"` : ""}><style>${css}</style>${bg}${body}</svg>`;
+}
+function buildTXT(st) {
+  const g = compute(st), lines = [];
+  for (let y = 0; y < g.rows; y++) {
+    let s = "";
+    for (let x = 0; x < g.cols; x++) { const c = g.cells[y * g.cols + x]; s += c ? c.c : (SETS[st.set].braille ? "⠀" : " "); }
+    lines.push(s.replace(/\s+$/, ""));
+  }
+  return lines.join("\n") + "\n";
+}
+function download(name, data, type) {
+  const blob = data instanceof Blob ? data : new Blob([data], { type });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+
+// ---------- preview loop ----------
+const out = $("out");
+let frames = [], frameIdx = 0, lastTick = 0, dirty = true, galleryDirty = true, galleryTimer = 0;
+function schedule(gallery) { dirty = true; if (gallery) { clearTimeout(galleryTimer); galleryTimer = setTimeout(() => { galleryDirty = true; }, 180); } }
+function rebuild() {
+  const n = animated(S) ? S.frames : 1;
+  frames = [];
+  for (let k = 0; k < n; k++) frames.push(compute(frameParams(S, k, n)));
+  frameIdx = 0;
+  const g = frames[0];
+  const glyphs = g.cells.reduce((a, c) => a + (c ? 1 : 0), 0);
+  $("info").textContent = `${g.cols}×${g.rows} cells · ${glyphs.toLocaleString()} glyphs${n > 1 ? ` · ${n} frames` : ""}`;
+  $("sizeNote").textContent = `SVG will be about ${Math.round(glyphs * (S.colorMode === "single" ? 6 : 9) * n / 1024)} KB.`;
+}
+function loop(ts) {
+  if (isVideo && source && !source.paused) dirty = true;
+  if (dirty) { rebuild(); draw(frames[0], out, S); dirty = false; lastTick = ts; }
+  else if (frames.length > 1 && ts - lastTick > 1000 / S.fps) {
+    frameIdx = (frameIdx + 1) % frames.length; draw(frames[frameIdx], out, S); lastTick = ts;
+  }
+  if (galleryDirty) { renderGallery(); galleryDirty = false; }
+  requestAnimationFrame(loop);
+}
+
+// ---------- gallery (live glyph previews) ----------
+function buildGallery() {
+  const gal = $("gallery"); gal.innerHTML = "";
+  const cats = [...new Set(SETS.map(s => s.cat))];
+  for (const cat of cats) {
+    const h = document.createElement("div"); h.className = "cat"; h.textContent = cat; gal.appendChild(h);
+    const wrap = document.createElement("div"); wrap.className = "cards"; gal.appendChild(wrap);
+    for (const set of SETS.filter(s => s.cat === cat)) {
+      const b = document.createElement("button"); b.className = "card"; b.dataset.i = set.i;
+      b.innerHTML = `<canvas width="208" height="208"></canvas><div class="n"></div><div class="g"></div>`;
+      b.querySelector(".n").textContent = set.name;
+      b.querySelector(".g").textContent = set.braille ? "⠁⠃⠇⡇⣇⣧⣷⣿" : set.chars.trim();
+      b.onclick = () => { S.set = set.i; syncUI(); schedule(true); };
+      wrap.appendChild(b);
+    }
+  }
+}
+function renderGallery() {
+  const tmp = document.createElement("canvas");
+  for (const b of document.querySelectorAll(".card")) {
+    const i = +b.dataset.i;
+    b.classList.toggle("on", i === S.set);
+    const st = { ...S, set: i, crop: S.crop === "original" ? "square" : S.crop, levels: 70, offset: 0,
+                 colorMode: S.colorMode === "image" ? "image" : "single", bgTransparent: true };
+    if (st.colorMode === "single") st.color = "#e04060";
+    const g = compute(st, 34, 10);
+    draw(g, tmp, st, 1);
+    const c = b.querySelector("canvas"), x = c.getContext("2d");
+    x.clearRect(0, 0, 208, 208);
+    const s = Math.min(200 / tmp.width, 200 / tmp.height);
+    x.drawImage(tmp, (208 - tmp.width * s) / 2, (208 - tmp.height * s) / 2, tmp.width * s, tmp.height * s);
+  }
+}
+
+// ---------- UI wiring ----------
+const KEYS = ["crop","zoom","focusX","focusY","set","cols","font","levels","offset","custom","customMode","autoSort",
+  "depth","contrast","brightness","invert","dither","colorMode","color","palette","bgTransparent","bg",
+  "animDepth","animOffset","swing","frames","fps"];
+const GALLERY_KEYS = new Set(["crop","zoom","focusX","focusY","depth","contrast","brightness","invert","dither","custom","customMode","autoSort","colorMode"]);
+
+function syncUI() {
+  for (const k of KEYS) {
+    const el = $(k);
+    if (el.type === "checkbox") el.checked = !!S[k];
+    else el.value = S[k];
+    const o = el.parentElement.querySelector("output"); if (o) o.textContent = S[k];
+  }
+  $("singleRow").style.display = S.colorMode === "single" ? "" : "none";
+  $("paletteRow").style.display = S.colorMode === "palette" ? "" : "none";
+  $("bgRow").style.display = S.bgTransparent ? "none" : "";
+  $("stage").style.background = S.bgTransparent ? "" : S.bg;
+  document.querySelectorAll(".card").forEach(b => b.classList.toggle("on", +b.dataset.i === S.set));
+}
+function initUI() {
+  const setSel = $("set");
+  let cat = "";
+  let og = null;
+  for (const s of SETS) {
+    if (s.cat !== cat) { og = document.createElement("optgroup"); og.label = cat = s.cat; setSel.appendChild(og); }
+    const o = document.createElement("option"); o.value = s.i; o.textContent = s.name; og.appendChild(o);
+  }
+  for (const p of Object.keys(PALETTES)) { const o = document.createElement("option"); o.value = o.textContent = p; $("palette").appendChild(o); }
+  for (const k of KEYS) {
+    const el = $(k);
+    el.addEventListener("input", () => {
+      let v = el.type === "checkbox" ? el.checked : el.value;
+      if (el.type === "range" || k === "set") v = +v;
+      S[k] = v; syncUI(); schedule(GALLERY_KEYS.has(k));
+    });
+  }
+  $("openBtn").onclick = () => $("file").click();
+  $("file").onchange = e => e.target.files[0] && loadFile(e.target.files[0]);
+  $("svgBtn").onclick = () => download("portrait.svg", buildSVG(S), "image/svg+xml");
+  $("txtBtn").onclick = () => download("portrait.txt", buildTXT(S), "text/plain;charset=utf-8");
+  $("pngBtn").onclick = () => { const c = document.createElement("canvas"); draw(frames[0], c, S, 3); c.toBlob(b => download("portrait.png", b)); };
+  $("saveBtn").onclick = savePreset;
+  $("resetBtn").onclick = () => { S = { ...DEFAULTS }; syncUI(); schedule(true); };
+  $("exportPresetsBtn").onclick = () => download("glyph-presets.json", JSON.stringify(readPresets(), null, 2), "application/json");
+  $("importPresetsBtn").onclick = () => $("presetFile").click();
+  $("presetFile").onchange = async e => {
+    const f = e.target.files[0]; if (!f) return;
+    try { const p = JSON.parse(await f.text()); writePresets({ ...readPresets(), ...p }); renderPresets(); }
+    catch { alert("That file isn't a presets file."); }
+  };
+  ["dragenter", "dragover"].forEach(t => document.addEventListener(t, e => { e.preventDefault(); document.body.classList.add("dragging"); }));
+  ["dragleave", "drop"].forEach(t => document.addEventListener(t, e => { e.preventDefault(); if (t === "drop" || e.target === document.documentElement) document.body.classList.remove("dragging"); }));
+  document.addEventListener("drop", e => { const f = e.dataTransfer.files[0]; if (f) loadFile(f); });
+}
+function loadFile(f) {
+  const url = URL.createObjectURL(f);
+  if (f.type.startsWith("video/")) {
+    const v = $("video"); v.src = url;
+    v.onloadeddata = () => { v.play(); setSource(v, v.videoWidth, v.videoHeight, true); };
+  } else {
+    const img = new Image();
+    img.onload = () => setSource(img, img.naturalWidth, img.naturalHeight, false);
+    img.onerror = () => alert("Couldn't open that image. Try a JPG or PNG.");
+    img.src = url;
+  }
+}
+
+// ---------- presets ----------
+const PKEY = "glyph-portrait-presets";
+function readPresets() { try { return JSON.parse(localStorage.getItem(PKEY) || "{}"); } catch { return {}; } }
+function writePresets(p) { try { localStorage.setItem(PKEY, JSON.stringify(p)); } catch {} }
+function savePreset() {
+  const name = prompt("Name this preset:"); if (!name) return;
+  const p = readPresets(); p[name] = { ...S }; writePresets(p); renderPresets();
+}
+function renderPresets() {
+  const list = $("presetList"); list.innerHTML = "";
+  const p = readPresets();
+  for (const name of Object.keys(p)) {
+    const row = document.createElement("div");
+    const load = document.createElement("button"); load.className = "b"; load.textContent = name;
+    load.onclick = () => { S = { ...DEFAULTS, ...p[name] }; syncUI(); schedule(true); };
+    const del = document.createElement("button"); del.className = "b"; del.textContent = "×"; del.title = "Delete preset";
+    del.onclick = () => { delete p[name]; writePresets(p); renderPresets(); };
+    row.append(load, del); list.appendChild(row);
+  }
+}
+
+initUI(); buildGallery(); syncUI(); renderPresets();
+const ph = placeholder(); setSource(ph, ph.width, ph.height, false);
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

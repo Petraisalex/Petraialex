@@ -23,6 +23,7 @@ jobs:
         run: |
           python3 scripts/generate_stats.py
           python3 scripts/headings.py
+          python3 scripts/art.py
 
       - name: rebuild projects section
         env:
@@ -32,7 +33,7 @@ jobs:
 
       - name: commit if changed
         run: |
-          FILES="README.md stats.svg streak.svg langs.svg year.svg hd-*.svg"
+          FILES="README.md stats.svg streak.svg langs.svg year.svg grid.svg hd-*.svg art"
           if [ -z "$(git status --porcelain -- $FILES)" ]; then
             echo "no changes"; exit 0
           fi

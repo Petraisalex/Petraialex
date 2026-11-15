@@ -8,6 +8,7 @@ Outputs:
     streak.svg  current streak + longest streak, with date ranges
     langs.svg   top languages, two columns: by bytes (%) and by repos (count)
     year.svg    the contribution year as a labelled character grid + legend
+    grid.svg    the contribution year as rounded pink squares (banner style)
 
 Standard library only (urllib). Theme-aware via an internal <style> the README
 sanitiser never touches. Deterministic: window pinned to whole UTC days, repos
@@ -28,14 +29,14 @@ LOGIN = os.environ.get("GH_LOGIN", "").strip()
 RAMP = " .`:-=+*cs#%@"          # shared with the portrait
 LEGEND = [":", "+", "#", "@"]   # low -> high, for the year legend
 
-# monochrome, theme-aware palette
+# navy & pink to match the banner, theme-aware
 STYLE = """
 <style>
-  .s{fill:#1f2328}  .m{fill:#59636e}  .t{fill:#d0d7de}
-  .stk{stroke:#1f2328}  .trk{fill:#eaeef2}
+  .s{fill:#1f2328}  .m{fill:#59636e}  .t{fill:#d0d7de}  .a{fill:#dd2d51}
+  .stk{stroke:#dd2d51}  .trk{fill:#eaeef2}  .ar{fill:#dd2d51;fill-opacity:.14}
   @media(prefers-color-scheme:dark){
-    .s{fill:#e6edf3} .m{fill:#7d8590} .t{fill:#30363d}
-    .stk{stroke:#e6edf3} .trk{fill:#21262d}
+    .s{fill:#f0f6fc} .m{fill:#9198a1} .t{fill:#30363d} .a{fill:#e04060}
+    .stk{stroke:#e04060} .trk{fill:#21262d} .ar{fill:#e04060;fill-opacity:.18}
   }
 </style>
 """
@@ -180,14 +181,14 @@ def build_stats(cal):
     ex, ey = pts[-1]
     inner = (
         f'{label(24,34,"CONTRIBUTIONS · LAST YEAR")}'
-        f'<text class="s" x="23" y="82" font-size="46" font-weight="700">{total:,}</text>'
+        f'<text class="a" x="23" y="82" font-size="46" font-weight="700">{total:,}</text>'
         f'<text class="s" x="{W-24}" y="40" font-size="21" font-weight="700" text-anchor="end">{active}</text>'
         f'<text class="m" x="{W-24}" y="55" font-size="9.5" letter-spacing="1.2" text-anchor="end">ACTIVE DAYS</text>'
         f'<text class="s" x="{W-24}" y="76" font-size="21" font-weight="700" text-anchor="end">{best}</text>'
         f'<text class="m" x="{W-24}" y="91" font-size="9.5" letter-spacing="1.2" text-anchor="end">BEST WEEK</text>'
-        f'<path class="trk" d="{area}"/>'
+        f'<path class="ar" d="{area}"/>'
         f'<polyline class="stk" fill="none" stroke-width="1.6" points="{line}"/>'
-        f'<circle class="s" cx="{ex:.1f}" cy="{ey:.1f}" r="2.6"/>'
+        f'<circle class="a" cx="{ex:.1f}" cy="{ey:.1f}" r="2.6"/>'
     )
     return svg(W, H, inner)
 
@@ -201,7 +202,7 @@ def build_streak(cur, longest):
             rng = nice(s["start"]) if s["start"] == s["end"] else f'{nice(s["start"])} → {nice(s["end"])}'
         return (
             f'<text class="m" x="{x}" y="30" font-size="9.5" letter-spacing="1.2">{lab}</text>'
-            f'<text class="s" x="{x-1}" y="76" font-size="40" font-weight="700">{s["n"]}'
+            f'<text class="a" x="{x-1}" y="76" font-size="40" font-weight="700">{s["n"]}'
             f'<tspan class="m" font-size="14" font-weight="400"> days</tspan></text>'
             f'<text class="m" x="{x}" y="98" font-size="11">{esc(rng)}</text>')
     inner = (block(24, "CURRENT STREAK", cur)
@@ -302,6 +303,67 @@ def build_year(cal):
     return svg(W, H, header + "".join(legend) + "".join(cells))
 
 
+def build_grid(cal):
+    """Contribution calendar as rounded pink squares, matching the banner's grid,
+    with a soft wave sweeping across it. Fully visible without the animation."""
+    CELL, GAP, R = 12, 3, 2.5
+    STEP = CELL + GAP
+    weeks = cal["weeks"]
+    counts = [d["contributionCount"] for w in weeks for d in w["contributionDays"]]
+    mx = max(counts) if counts else 0
+    x0, y0 = 36, 44
+    W = int(x0 + len(weeks) * STEP + 12)
+    H = y0 + 7 * STEP + 40
+
+    def level(c):
+        if c <= 0 or mx == 0:
+            return 0
+        return max(1, min(4, -(-4 * c // mx)))   # ceil(4c/max)
+
+    style = (
+        "<style>"
+        ".l0{fill:#eff2f5}.l1{fill:#f5c2cc}.l2{fill:#ee96a8}.l3{fill:#e76a83}.l4{fill:#dd2d51}"
+        ".m{fill:#59636e}.s{fill:#1f2328}"
+        "@media(prefers-color-scheme:dark){"
+        ".l0{fill:#161b22}.l1{fill:#562737}.l2{fill:#852f45}.l3{fill:#b33853}.l4{fill:#e04060}"
+        ".m{fill:#9198a1}.s{fill:#f0f6fc}}"
+        ".w{animation:w 7s ease-in-out infinite}"
+        "@keyframes w{0%,14%,100%{opacity:1}6%{opacity:.35}}"
+        "</style>")
+    parts = []
+    month_last, last_lx = None, -100
+    for wi, w in enumerate(weeks):
+        x = x0 + wi * STEP
+        first = datetime.date.fromisoformat(w["contributionDays"][0]["date"])
+        if first.month != month_last:
+            month_last = first.month
+            if x - last_lx >= 30:
+                parts.append(f'<text class="m" x="{x}" y="{y0 - 8}" font-size="10">{first.strftime("%b")}</text>')
+                last_lx = x
+        cells = []
+        for d in w["contributionDays"]:
+            y = y0 + d["weekday"] * STEP
+            cells.append(f'<rect class="l{level(d["contributionCount"])}" x="{x}" y="{y}" '
+                         f'width="{CELL}" height="{CELL}" rx="{R}"/>')
+        parts.append(f'<g class="w" style="animation-delay:{wi * 0.06:.2f}s">{"".join(cells)}</g>')
+    for wd, name in ((1, "Mon"), (3, "Wed"), (5, "Fri")):
+        parts.append(f'<text class="m" x="2" y="{y0 + wd * STEP + 10}" font-size="10">{name}</text>')
+    # header + legend, like the banner
+    total = cal["totalContributions"]
+    head = (f'<text class="s" x="{x0}" y="18" font-size="13" font-weight="600">'
+            f'{total:,} contribution{"s" if total != 1 else ""} in the last year</text>')
+    ly = y0 + 7 * STEP + 18
+    lx = W - 12 - (5 * STEP) - 64
+    legend = [f'<text class="m" x="{lx}" y="{ly + 10}" font-size="10">Less</text>']
+    for i in range(5):
+        legend.append(f'<rect class="l{i}" x="{lx + 30 + i * STEP}" y="{ly}" width="{CELL}" height="{CELL}" rx="{R}"/>')
+    legend.append(f'<text class="m" x="{lx + 30 + 5 * STEP + 4}" y="{ly + 10}" font-size="10">More</text>')
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" width="{W}" height="{H}" '
+            f'role="img" aria-label="{total} contributions in the last year" '
+            f'font-family="Montserrat, -apple-system, \'Segoe UI\', Helvetica, Arial, sans-serif">'
+            f'{style}{head}{"".join(parts)}{"".join(legend)}</svg>')
+
+
 def main():
     login = whoami()
     cal = fetch_calendar(login)
@@ -312,6 +374,7 @@ def main():
         "streak.svg": build_streak(cur, longest),
         "langs.svg": build_langs(by_bytes, by_repos),
         "year.svg": build_year(cal),
+        "grid.svg": build_grid(cal),
     }
     for name, content in outputs.items():
         with open(name, "w") as f:
