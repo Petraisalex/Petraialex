@@ -37,16 +37,21 @@ TAGLINES = [
     "Hyrox, boxing & live-coded music",
 ]
 
-STACK = ["python", "pytorch", "r", "powerbi", "excel", "git"]
-LABELS = {"python": "Python", "pytorch": "PyTorch", "r": "R",
+MASTERED = ["python", "powerbi", "excel", "r", "git"]
+LEARNING = ["xgboost", "pytorch"]
+LABELS = {"python": "Python", "pytorch": "PyTorch", "r": "R", "xgboost": "XGBoost",
           "powerbi": "Power BI", "excel": "Excel", "git": "Git"}
 
 CONNECT = [("linkedin", "LinkedIn"), ("instagram", "Instagram"), ("email", "Email")]
 
 
+def xesc(s):
+    return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
+
+
 def svg(w, h, inner, label):
     return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" '
-            f'height="{h}" role="img" aria-label="{label.replace("&", "&amp;")}">{STYLE}{inner}</svg>')
+            f'height="{h}" role="img" aria-label="{xesc(label)}">{STYLE}{inner}</svg>')
 
 
 def icon_path(name):
@@ -69,6 +74,12 @@ def mark(name, x, y, size):
         body = ('<rect class="ac" x="2" y="2" width="20" height="20" rx="4"/>'
                 '<path class="bgs" d="M8 7l8 10M16 7L8 17" stroke-width="2.6" '
                 'stroke-linecap="round" fill="none"/>')
+    elif name == "xgboost":  # small decision tree
+        body = ('<path class="acs" d="M12 6v4M12 10L6 15M12 10l6 5" fill="none" stroke-width="2" '
+                'stroke-linecap="round"/>'
+                '<circle class="ac" cx="12" cy="5" r="3"/>'
+                '<rect class="ac" x="2.5" y="15" width="7" height="6" rx="1.6"/>'
+                '<rect class="ac" x="14.5" y="15" width="7" height="6" rx="1.6"/>')
     elif name == "email":   # envelope
         body = ('<rect class="acs" x="2.5" y="5" width="19" height="14" rx="2.5" '
                 'fill="none" stroke-width="2"/>'
@@ -121,7 +132,7 @@ def build_typing():
             f'<animate attributeName="width" calcMode="discrete" dur="{T:.2f}s" '
             f'repeatCount="indefinite" keyTimes="{kt}" values="{vals}"/></rect></clipPath>')
         texts.append(f'<text class="fg" x="{x0:.1f}" y="37" clip-path="url(#c{i})">'
-                     f'{line.replace("&", "&amp;")}</text>')
+                     f'{xesc(line)}</text>')
         caret_pts += [(tm, x0 + v) for tm, v in clean if 0 < tm < 1]
 
     caret_pts.sort()
@@ -139,16 +150,16 @@ def build_typing():
 
 
 ABOUT = [  # (key, wrapped lines)
-    ("study", ["Finance BSc → MSc International Business,",
-               "honours: Maastricht · Stellenbosch · Aston"]),
-    ("work",  ["Building the BI layer at Qorium, a biotech",
-               "growing real leather in a lab"]),
-    ("built", ["Fraud-detection model on 280,000+",
-               "transactions, Power BI risk dashboard on top"]),
+    ("study", ["BSc International Business, Finance major",
+               "MSc Organizational Management, 3 schools"]),
+    ("work",  ["Agentic workflows (n8n) & business",
+               "intelligence for SMEs and startups"]),
+    ("build", ["XGBoost decision engine scoring tabular",
+               "transactions in <50 ms for digital banks"]),
     ("won",   ["Junction Hackathon runner-up of 120+ teams:",
                "automated ESG scoring for SME lending"]),
-    ("off",   ["Hyrox · boxing · live-coded music ·",
-               "memory sport · Japanese · FX markets"]),
+    ("off",   ["Live-coding music · Hyrox & boxing ·",
+               "learning Japanese"]),
 ]
 
 
@@ -186,7 +197,7 @@ def build_about():
                 p.append(f'<text class="ac" x="{3 * CW:.1f}" y="{y}" font-weight="700">{key}</text>')
                 p.append(f'<text class="mu" x="{(3 + KEY - 2) * CW:.1f}" y="{y}">→</text>')
             p.append(f'<text class="fg" x="{(3 + KEY) * CW:.1f}" y="{y}" xml:space="preserve">'
-                     f'{line.replace("&", "&amp;")}</text>')
+                     f'{xesc(line)}</text>')
         if i < len(ABOUT) - 1:
             y += LH
     # side rails: one │ per text row so they read as characters
@@ -198,16 +209,31 @@ def build_about():
 
 
 def build_stack():
-    TW, TH, GAP = 110, 112, 20
-    W = len(STACK) * TW + (len(STACK) - 1) * GAP
-    parts = []
-    for i, name in enumerate(STACK):
-        x = i * (TW + GAP)
-        parts.append(f'<rect class="cd" x="{x + .5}" y=".5" width="{TW - 1}" height="{TH - 1}" rx="16"/>')
-        parts.append(mark(name, x + TW / 2 - 22, 20, 44))
-        parts.append(f'<text class="fg" x="{x + TW / 2}" y="92" text-anchor="middle" '
-                     f'font-family="{SANS}" font-size="13" font-weight="600">{LABELS[name]}</text>')
-    return svg(W, TH, "".join(parts), " · ".join(LABELS[n] for n in STACK))
+    """Two groups of tiles: what I've mastered, and what I'm learning now."""
+    TW, TH, GAP, SPLIT, TOP = 92, 100, 12, 56, 30
+
+    def group(names, x0, title, dashed=False):
+        out = [f'<text class="mu" x="{x0}" y="14" font-family="{SANS}" font-size="11" '
+               f'font-weight="700" letter-spacing="2.5">{title}</text>']
+        for i, name in enumerate(names):
+            x = x0 + i * (TW + GAP)
+            dash = ' stroke-dasharray="5 4"' if dashed else ""
+            out.append(f'<rect class="cd" x="{x + .5}" y="{TOP + .5}" width="{TW - 1}" '
+                       f'height="{TH - 1}" rx="14"{dash}/>')
+            out.append(mark(name, x + TW / 2 - 19, TOP + 16, 38))
+            out.append(f'<text class="fg" x="{x + TW / 2}" y="{TOP + 80}" text-anchor="middle" '
+                       f'font-family="{SANS}" font-size="12.5" font-weight="600">{LABELS[name]}</text>')
+        return out, len(names) * TW + (len(names) - 1) * GAP
+
+    left, lw = group(MASTERED, 0, "MASTERED")
+    rx = lw + SPLIT
+    right, rw = group(LEARNING, rx, "LEARNING NOW", dashed=True)
+    W, H = rx + rw, TOP + TH
+    divider = (f'<line class="acs" x1="{lw + SPLIT / 2}" y1="{TOP + 10}" x2="{lw + SPLIT / 2}" '
+               f'y2="{H - 10}" stroke-width="1" stroke-dasharray="2 5" opacity=".6"/>')
+    label = ("Mastered: " + ", ".join(LABELS[n] for n in MASTERED)
+             + ". Learning now: " + ", ".join(LABELS[n] for n in LEARNING) + ".")
+    return svg(W, H, "".join(left) + divider + "".join(right), label)
 
 
 def build_connect(name, label):
