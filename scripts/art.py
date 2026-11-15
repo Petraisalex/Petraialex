@@ -243,7 +243,7 @@ def build_profile():
         return [(indent, f'"{key}"', "ac", True), (indent + len(key) + 2, ": ", "mu", False)] + rest
 
     rows = [[(0, "{", "mu", False)],
-            kv(2, "based_in", [(14, f'"{BASED_IN}"', "fg", False), (16 + len(BASED_IN), ",", "mu", False)]),
+            kv(2, "based_currently_in", [(24, f'"{BASED_IN}"', "fg", False), (26 + len(BASED_IN), ",", "mu", False)]),
             kv(2, "languages", [(15, "{", "mu", False)])]
     for name, level, word in LANGUAGES:
         bar = [(17, "█" * level, "ac", False)] if level else []
@@ -255,7 +255,7 @@ def build_profile():
              [(4, ", ".join(f'"{h}"' for h in OFF_SCREEN), "fg", False)],
              [(2, "]", "mu", False)],
              [(0, "}", "mu", False)]]
-    label = (f"Profile. Based in {BASED_IN}. Languages: "
+    label = (f"Profile. Based currently in {BASED_IN}. Languages: "
              + ", ".join(f"{n} ({w})" for n, _, w in LANGUAGES)
              + ". Off-screen: " + ", ".join(OFF_SCREEN) + ".")
     return frame("profile.json", rows, label)
