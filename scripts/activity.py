@@ -26,8 +26,11 @@ import urllib.error
 from zoneinfo import ZoneInfo
 
 API = "https://api.github.com/graphql"
-TOKEN = (os.environ.get("ACTIVITY_TOKEN") or os.environ.get("PROFILE_TOKEN")
-         or os.environ["GITHUB_TOKEN"])
+# read-only keys, tried in order; each may see a different set of repos
+# (PROFILE_TOKEN: your own repos; VCM_TOKEN: made on the vcmaastricht account)
+TOKENS = [t for t in (os.environ.get(k, "").strip()
+                      for k in ("ACTIVITY_TOKEN", "PROFILE_TOKEN", "VCM_TOKEN")) if t]
+TOKENS = TOKENS or [os.environ["GITHUB_TOKEN"]]
 LOGIN = os.environ.get("GH_LOGIN", "").strip()
 TZ = ZoneInfo("Europe/Amsterdam")
 EXCLUDE = {"Petraisalex/Petraisalex"}     # the profile repo: README edits, not work
@@ -39,10 +42,10 @@ class NoAccess(Exception):
     pass
 
 
-def gql(query, variables):
+def gql(query, variables, token=None):
     body = json.dumps({"query": query, "variables": variables}).encode()
     req = urllib.request.Request(API, data=body, headers={
-        "Authorization": f"bearer {TOKEN}", "Content-Type": "application/json",
+        "Authorization": f"bearer {token or TOKENS[0]}", "Content-Type": "application/json",
         "User-Agent": "profile-activity"})
     try:
         with urllib.request.urlopen(req) as r:
@@ -64,23 +67,27 @@ def day_of(ts):
 
 
 def collect():
-    me = gql("{viewer{login id}}", {})["viewer"]
-    login, uid = LOGIN or me["login"], me["id"]
+    login = LOGIN or gql("{viewer{login}}", {})["viewer"]["login"]
+    uid = gql("query($l:String!){user(login:$l){id}}", {"l": login})["user"]["id"]
     today = datetime.datetime.now(TZ).date()
     start = today - datetime.timedelta(days=364)
     since = datetime.datetime.combine(start, datetime.time(), TZ).isoformat()
 
     # every repo you own, collaborate on, or reach through an organisation
-    repos, after = [], None
+    seen = {}                        # nameWithOwner -> (repo, [tokens that list it])
     q = """query($after:String){ viewer{ repositories(first:100,after:$after,
           ownerAffiliations:[OWNER,COLLABORATOR,ORGANIZATION_MEMBER]){
           pageInfo{hasNextPage endCursor} nodes{ nameWithOwner name owner{login} isPrivate } } } }"""
-    while True:
-        r = gql(q, {"after": after})["viewer"]["repositories"]
-        repos += r["nodes"]
-        if not r["pageInfo"]["hasNextPage"]:
-            break
-        after = r["pageInfo"]["endCursor"]
+    for tok in TOKENS:
+        after = None
+        while True:
+            r = gql(q, {"after": after}, tok)["viewer"]["repositories"]
+            for n in r["nodes"]:
+                seen.setdefault(n["nameWithOwner"], (n, []))[1].append(tok)
+            if not r["pageInfo"]["hasNextPage"]:
+                break
+            after = r["pageInfo"]["endCursor"]
+    repos = [v[0] for v in seen.values()]
 
     events = {}                      # date -> count
     kinds = {"commits": 0, "pull requests": 0, "issues": 0, "code review": 0}
@@ -113,29 +120,42 @@ def collect():
         private[name] = repo["isPrivate"]
         if name in EXCLUDE:
             continue
-        after = None
-        while True:
-            r = gql(hq, {"o": repo["owner"]["login"], "n": repo["name"], "uid": uid,
-                         "since": since, "after": after})["repository"]
-            if not r or not r["defaultBranchRef"]:
-                break                                  # empty repo
-            h = r["defaultBranchRef"]["target"]["history"]
-            for n in h["nodes"]:
-                add(day_of(n["authoredDate"]), "commits", name)
-            if not h["pageInfo"]["hasNextPage"]:
+        dates, err = None, None
+        for tok in seen[name][1]:                      # first key that can read it wins
+            try:
+                dates, after = [], None
+                while True:
+                    r = gql(hq, {"o": repo["owner"]["login"], "n": repo["name"], "uid": uid,
+                                 "since": since, "after": after}, tok)["repository"]
+                    if not r or not r["defaultBranchRef"]:
+                        break                          # empty repo
+                    h = r["defaultBranchRef"]["target"]["history"]
+                    dates += [n["authoredDate"] for n in h["nodes"]]
+                    if not h["pageInfo"]["hasNextPage"]:
+                        break
+                    after = h["pageInfo"]["endCursor"]
                 break
-            after = h["pageInfo"]["endCursor"]
+            except NoAccess as e:
+                dates, err = None, e
+        if dates is None:
+            raise NoAccess(f"{name}: {err}")
+        for ts in dates:
+            add(day_of(ts), "commits", name)
 
     def search(query, fields):
-        out, after = [], None
+        """Run with every key; each sees its own repos. De-duplicated by node id."""
+        out = {}
         sq = """query($q:String!,$after:String){ search(type:ISSUE,query:$q,first:100,after:$after){
-          pageInfo{hasNextPage endCursor} nodes{ %s } } }""" % fields
-        while True:
-            s = gql(sq, {"q": query, "after": after})["search"]
-            out += [n for n in s["nodes"] if n]
-            if not s["pageInfo"]["hasNextPage"]:
-                return out
-            after = s["pageInfo"]["endCursor"]
+          pageInfo{hasNextPage endCursor} nodes{ ... on Node{ id } %s } } }""" % fields
+        for tok in TOKENS:
+            after = None
+            while True:
+                s = gql(sq, {"q": query, "after": after}, tok)["search"]
+                out.update({n["id"]: n for n in s["nodes"] if n})
+                if not s["pageInfo"]["hasNextPage"]:
+                    break
+                after = s["pageInfo"]["endCursor"]
+        return list(out.values())
 
     window = f"created:>={start.isoformat()}"
     for n in search(f"is:pr author:{login} {window}",

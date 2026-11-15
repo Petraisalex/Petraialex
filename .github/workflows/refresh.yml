@@ -19,8 +19,9 @@ jobs:
       - name: count activity (private repos included, profile repo left out)
         env:
           PROFILE_TOKEN: ${{ secrets.PROFILE_TOKEN }}
-          ACTIVITY_TOKEN: ${{ secrets.ACTIVITY_TOKEN }}
+          VCM_TOKEN: ${{ secrets.VCM_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_LOGIN: ${{ github.repository_owner }}
         run: python3 scripts/activity.py
 
       - name: generate graphics
