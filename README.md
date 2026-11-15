@@ -15,7 +15,7 @@
 <tr>
 <td width="62%" valign="middle">
 
-<img src="art/about.svg" width="100%" alt="About me. Study: Finance BSc, now MSc International Business honours across Maastricht, Stellenbosch and Aston. Work: building the BI layer at Qorium, a biotech growing real leather in a lab. Built: a fraud-detection model on 280,000+ transactions with a Power BI risk dashboard. Won: Junction Hackathon runner-up of 120+ teams, automated ESG scoring for SME lending. Off-screen: Hyrox, boxing, live-coded music, memory sport, Japanese, FX markets.">
+<img src="art/about.svg" width="100%" alt="About me. Study: BSc International Business with a Finance major, and an MSc in Organizational Management across three business schools. Work: agentic workflows with n8n and business intelligence for SMEs and startups. Building: an XGBoost decision engine that scores tabular transactions in under 50 ms for high-velocity digital banks. Won: Junction Hackathon runner-up of 120+ teams. Off-screen: live-coding music, Hyrox and boxing, learning Japanese.">
 
 </td>
 <td width="38%" align="center" valign="middle">
@@ -29,31 +29,18 @@
 <img src="hd-tech-stack.svg" width="100%" alt="tech stack">
 
 <p align="center">
-  <img src="art/stack.svg" width="760" alt="Python · PyTorch · R · Power BI · Excel · Git">
+  <img src="art/stack.svg" width="760" alt="Mastered: Python, Power BI, Excel, R, Git. Learning now: XGBoost, PyTorch.">
 </p>
 
 <img src="hd-projects.svg" width="100%" alt="projects">
 
 <!-- PROJECTS:START -->
 
-<samp><b>hobby &amp; business</b></samp>
+<p align="center">
+  <img src="art/projects-web.svg" width="100%" alt="Project web. hobby and business: t9-trading-floor, kaizena, petrakov-folio; quant finance: portfolio-recommendation-engine; business intelligence and ml: modastera-outbound-pipeline, blog-chart-spec; not in a cluster: assets">
+</p>
 
-**t9-trading-floor** &nbsp;·&nbsp; <samp>typescript</samp> &nbsp;·&nbsp; <samp>private</samp>
-
-**kaizena** &nbsp;·&nbsp; <samp>html</samp> &nbsp;·&nbsp; <samp>private</samp>
-
-**petrakov-folio** &nbsp;·&nbsp; <samp>javascript</samp> &nbsp;·&nbsp; <samp>private</samp>
-
-<samp><b>quant finance</b></samp>
-
-**[portfolio-recommendation-engine](https://github.com/Petraisalex/portfolio-recommendation-engine)** &nbsp;·&nbsp; <samp>python</samp>  
-Digital Business Analysis Project; Solving a digital problem through a digital analysis and sulution
-
-<samp><b>business intelligence &amp; ml</b></samp>
-
-**modastera-outbound-pipeline** &nbsp;·&nbsp; <samp>html</samp> &nbsp;·&nbsp; <samp>private</samp>
-
-**blog-chart-spec** &nbsp;·&nbsp; <samp>python</samp> &nbsp;·&nbsp; <samp>private</samp>
+<p align="center"><sub>open source: &nbsp;<a href="https://github.com/Petraisalex/portfolio-recommendation-engine">portfolio-recommendation-engine</a> &nbsp;·&nbsp; <a href="https://github.com/Petraisalex/assets">assets</a></sub></p>
 
 <!-- PROJECTS:END -->
 
