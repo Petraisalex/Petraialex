@@ -29,14 +29,28 @@ I build at the intersection of finance and AI: financial modeling, econometrics,
 
 <img src="hd-projects.svg" width="720" alt="projects">
 
-**[portfolio-recommendation-engine](https://github.com/Petraialex/portfolio-recommendation-engine)** &nbsp;·&nbsp; <samp>python</samp>
-Portfolio recommendation built as an end-to-end digital-business analysis — problem, data, solution.
+<!-- PROJECTS:START -->
 
-**[blog-chart-spec](https://github.com/Petraialex/blog-chart-spec)** &nbsp;·&nbsp; <samp>python</samp>
-Specification and tooling for the data-visualization figures in ModAstera blog posts.
+<samp><b>hobby &amp; business</b></samp>
 
-**[petrakov-folio](https://github.com/Petraialex/petrakov-folio)** &nbsp;·&nbsp; <samp>javascript</samp>
-Personal portfolio site.
+**t9-trading-floor** &nbsp;·&nbsp; <samp>typescript</samp> &nbsp;·&nbsp; <samp>private</samp>
+
+**kaizena** &nbsp;·&nbsp; <samp>html</samp> &nbsp;·&nbsp; <samp>private</samp>
+
+**petrakov-folio** &nbsp;·&nbsp; <samp>javascript</samp> &nbsp;·&nbsp; <samp>private</samp>
+
+<samp><b>quant finance</b></samp>
+
+**[portfolio-recommendation-engine](https://github.com/Petraisalex/portfolio-recommendation-engine)** &nbsp;·&nbsp; <samp>python</samp>  
+Digital Business Analysis Project; Solving a digital problem through a digital analysis and sulution
+
+<samp><b>business intelligence &amp; ml</b></samp>
+
+**modastera-outbound-pipeline** &nbsp;·&nbsp; <samp>html</samp> &nbsp;·&nbsp; <samp>private</samp>
+
+**blog-chart-spec** &nbsp;·&nbsp; <samp>python</samp> &nbsp;·&nbsp; <samp>private</samp>
+
+<!-- PROJECTS:END -->
 
 <img src="hd-stats.svg" width="720" alt="stats">
 
@@ -57,5 +71,7 @@ Every graphic here is generated inside this repo — nothing is embedded from a 
 `portrait.svg` is a photo pushed through a 13-character brightness ramp by `scripts/portrait.py`. The stat graphics and these section headings are drawn by [a scheduled action](.github/workflows/refresh.yml) straight from the GitHub GraphQL API, once a day, committing only what changed.
 
 Everything is drawn to read correctly as a static image: GitHub renders README graphics as static (it runs no scripts or animation inside them), so nothing here depends on either. The headings are images too — GitHub strips CSS from README text, so an image is the only way to give them their own typeface.
+
+The projects list is grouped by each repo's GitHub topic and rebuilt by `scripts/projects.py` in the same daily run; private repos appear by name only.
 
 Language totals cover public repositories only. `year.svg` uses the portrait's own ramp — `:` `+` `#` `@`, quiet to loud.
