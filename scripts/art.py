@@ -45,7 +45,7 @@ CONNECT = [("linkedin", "LinkedIn"), ("instagram", "Instagram"), ("email", "Emai
 
 def svg(w, h, inner, label):
     return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" '
-            f'height="{h}" role="img" aria-label="{label}">{STYLE}{inner}</svg>')
+            f'height="{h}" role="img" aria-label="{label.replace("&", "&amp;")}">{STYLE}{inner}</svg>')
 
 
 def icon_path(name):
