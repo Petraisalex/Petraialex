@@ -1,3 +1,4 @@
 portrait_src.*
 *.png
 __pycache__/
+!art/signature/headshot.png
