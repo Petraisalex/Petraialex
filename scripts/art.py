@@ -181,7 +181,8 @@ WHOAMI = [  # (key, wrapped lines)
 ]
 BASED_IN = "Maastricht, NL"
 LANGUAGES = [("English", 10, "native"), ("Russian", 10, "native"),
-             ("Dutch", 7, "professional"), ("Japanese", 2, "learning")]
+             ("Dutch", 7, "professional"), ("Japanese", 2, "learning"),
+             ("German", 2, "learning")]
 OFF_SCREEN = ["live-coding music", "Hyrox & boxing", "wine tasting"]
 
 CARD_FS, CARD_CW, CARD_LH = 13, 13 * 0.6, 22

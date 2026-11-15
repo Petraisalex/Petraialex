@@ -17,7 +17,7 @@
 
 <img src="art/whoami.svg" width="100%" alt="Who am I. Study: BSc International Business with a Finance major, and an MSc in Organizational Management across three business schools. Work: agentic workflows with n8n and business intelligence for SMEs and startups. Build: an XGBoost decision engine scoring tabular transactions in under 50 ms for digital banks. Won: Junction Hackathon runner-up of 120+ teams.">
 
-<img src="art/profile.svg" width="100%" alt="Profile. Based currently in Maastricht, Netherlands. Languages: English (native), Russian (native), Dutch (professional), Japanese (learning). Off-screen: live-coding music, Hyrox and boxing, wine tasting.">
+<img src="art/profile.svg" width="100%" alt="Profile. Based currently in Maastricht, Netherlands. Languages: English (native), Russian (native), Dutch (professional), Japanese (learning), German (learning). Off-screen: live-coding music, Hyrox and boxing, wine tasting.">
 
 </td>
 <td width="38%" align="center" valign="middle">
