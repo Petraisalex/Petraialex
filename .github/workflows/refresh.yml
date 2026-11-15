@@ -37,8 +37,8 @@ jobs:
           if [ -z "$(git status --porcelain -- $FILES)" ]; then
             echo "no changes"; exit 0
           fi
-          git config user.name  "A. Petrakov"
-          git config user.email "236253301+Petraisalex@users.noreply.github.com"
+          git config user.name  "profile-refresh"
+          git config user.email "profile-refresh@petraisalex.invalid"   # not a GitHub account: no streak, no contributor
           git add -- $FILES
           git commit -m "stats: refresh"
           git push
