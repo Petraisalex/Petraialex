@@ -39,7 +39,7 @@
 <!-- PROJECTS:START -->
 
 <p align="center">
-  <img src="art/projects-web.svg" width="100%" alt="Project web. hobby and business: t9-trading-floor, kaizena, petrakov-folio; quant finance: portfolio-recommendation-engine; business intelligence and ml: modastera-outbound-pipeline, blog-chart-spec">
+  <img src="art/projects-web.svg" width="100%" alt="Project web. hobby and business: event-study-trading-game, kaizena, personal-website; quant finance: portfolio-recommendation-engine; business intelligence and ml: b2b-lead-scoring-pipeline, data-viz-style-guide">
 </p>
 
 <p align="center"><sub>open source: &nbsp;<a href="https://github.com/Petraisalex/portfolio-recommendation-engine">portfolio-recommendation-engine</a></sub></p>
