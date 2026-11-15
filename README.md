@@ -69,10 +69,7 @@ Digital Business Analysis Project; Solving a digital problem through a digital a
 </p>
 
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/Petraisalex/Petraisalex/output/snake-dark.svg">
-    <img alt="A snake eating the contribution grid" src="https://raw.githubusercontent.com/Petraisalex/Petraisalex/output/snake-light.svg" width="100%">
-  </picture>
+  <img src="grid.svg" width="100%" alt="Contribution calendar for the last year">
 </p>
 
 <img src="hd-let-s-connect.svg" width="100%" alt="let's connect">
