@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 168 44" width="168" height="44" role="img" aria-label="Email"><style>
+.fg{fill:#1f2328}.mu{fill:#59636e}.ac{fill:#dd2d51}.acs{stroke:#dd2d51}
+.cd{fill:#f6f8fa;stroke:#d1d9e0}.bgs{stroke:#f6f8fa}
+@media(prefers-color-scheme:dark){
+.fg{fill:#f0f6fc}.mu{fill:#9198a1}.ac{fill:#e04060}.acs{stroke:#e04060}
+.cd{fill:#151b23;stroke:#30363d}.bgs{stroke:#151b23}}
+</style><rect class="cd" x=".5" y=".5" width="167" height="43" rx="22"/><g transform="translate(20 12) scale(0.8333)"><rect class="acs" x="2.5" y="5" width="19" height="14" rx="2.5" fill="none" stroke-width="2"/><path class="acs" d="M3.5 7l8.5 6 8.5-6" fill="none" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></g><text class="fg" x="52" y="27.5" font-family="Montserrat, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="600">Email</text></svg>
