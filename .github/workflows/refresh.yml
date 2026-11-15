@@ -24,9 +24,15 @@ jobs:
           python3 scripts/generate_stats.py
           python3 scripts/headings.py
 
+      - name: rebuild projects section
+        env:
+          PROFILE_TOKEN: ${{ secrets.PROFILE_TOKEN }}
+          GH_LOGIN: ${{ github.repository_owner }}
+        run: python3 scripts/projects.py
+
       - name: commit if changed
         run: |
-          FILES="stats.svg streak.svg langs.svg year.svg hd-*.svg"
+          FILES="README.md stats.svg streak.svg langs.svg year.svg hd-*.svg"
           if [ -z "$(git status --porcelain -- $FILES)" ]; then
             echo "no changes"; exit 0
           fi
