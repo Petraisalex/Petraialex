@@ -10,7 +10,7 @@ No API calls, no arguments — edit LABELS to change the set.
 """
 import re
 
-LABELS = ["about me", "tech stack", "projects", "github stats", "let's connect"]
+LABELS = ["about me", "tech stack", "projects", "activity", "let's connect"]
 
 W, H = 760, 40
 FS = 13

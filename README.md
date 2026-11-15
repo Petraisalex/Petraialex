@@ -46,11 +46,15 @@
 
 <!-- PROJECTS:END -->
 
-<img src="hd-github-stats.svg" width="100%" alt="github stats">
+<img src="hd-activity.svg" width="100%" alt="activity">
 
 <p align="center">
   <img src="stats.svg" width="440" alt="Contributions in the last year, active days, best week, and a weekly activity line">
   <img src="streak.svg" width="440" alt="Current and longest contribution streaks">
+</p>
+
+<p align="center">
+  <img src="art/activity.svg" width="100%" alt="Activity across all repositories in the last year, excluding this profile repo: the repositories contributed to, and the split between commits, pull requests, issues and code review">
 </p>
 
 <p align="center">
