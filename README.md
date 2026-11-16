@@ -22,7 +22,7 @@
 </td>
 <td width="38%" align="center" valign="middle">
 
-<img src="portrait.svg" width="280" alt="Character-art portrait of Alexander Petrakov">
+<img src="portrait-spin.svg" width="280" alt="Character-art portrait of Alexander Petrakov, turning like a character select screen">
 
 </td>
 </tr>
