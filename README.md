@@ -39,7 +39,7 @@
 <!-- PROJECTS:START -->
 
 <p align="center">
-  <img src="art/projects-web.svg" width="100%" alt="Project web. hobby and business: event-study-trading-game, kaizena, personal-website; quant finance: portfolio-recommendation-engine; business intelligence and ml: b2b-lead-scoring-pipeline, data-viz-style-guide">
+  <img src="art/projects-web.svg" width="100%" alt="Project web. hobby and business: event-study-trading-game, kaizena, personal-website; quant finance: portfolio-recommendation-engine; business intelligence and ml: b2b-lead-scoring-pipeline, data-viz-style-guide; not in a cluster: Fintech-Analytics">
 </p>
 
 <p align="center"><sub>open source: &nbsp;<a href="https://github.com/Petraisalex/portfolio-recommendation-engine">portfolio-recommendation-engine</a></sub></p>
